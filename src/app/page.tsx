@@ -403,40 +403,51 @@ export default function ChatPage() {
     autoResize();
   };
 
-  const renderMessage = (message: Message, index: number) => {
-    if (message.isUser) {
-      return (
-        <div key={index} className="user-message-container">
-          <div className="user-message-text">{message.content}</div>
-        </div>
-      );
-    }
+// Thay thế phần renderMessage của bạn bằng code này:
 
-    const isTyping = message.content === "typing...";
-
+const renderMessage = (message: Message, index: number) => {
+  if (message.isUser) {
     return (
-      <div
-        key={index}
-        className={`bot-message ${isTyping ? "loading-message" : ""}`}
-      >
-        <div className="message-content">
-          {isTyping ? (
-            <div className="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          ) : (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(marked(message.content) as string),
-              }}
-            />
-          )}
-        </div>
+      <div key={index} className="user-message-container">
+        <div className="user-message-text">{message.content}</div>
       </div>
     );
-  };
+  }
+
+  const isTyping = message.content === "typing...";
+
+  return (
+    <div
+      key={index}
+      className={`bot-message ${isTyping ? "loading-message" : ""}`}
+    >
+      <div className="message-content">
+        {isTyping ? (
+          <div className="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        ) : (
+          <div
+            className="markdown-content" // Thêm class này
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(marked(message.content) as string, {
+                // Cấu hình DOMPurify để giữ lại các thuộc tính cần thiết
+                ALLOWED_TAGS: [
+                  'p', 'br', 'strong', 'em', 'u', 'strike', 'code', 'pre',
+                  'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                  'blockquote', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'td', 'th'
+                ],
+                ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class']
+              }),
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
 
   return (
     <div className="main-content">
