@@ -118,7 +118,7 @@ p {
 
 .button-container {
     display: flex;
-    justify-content: end;
+    justify-content: space-between;
     align-items: center;
     width: 100%;
 }
@@ -145,7 +145,8 @@ p {
 
 /* === Buttons === */
 .send-button,
-.clear-button {
+.clear-button,
+.apikey-config-button {
     width: 35px;
     height: 35px;
     display: flex;
@@ -176,6 +177,17 @@ p {
 .clear-button:hover {
     background-color: #e74c3c;
     color: white;
+}
+
+.apikey-config-button {
+    color: #e3971d;
+    background-color: white;
+    border: 1px solid #e3971d;
+}
+
+.apikey-config-button:hover{
+    color: white;
+    background-color: #e3971d;
 }
 
 /* === Messages === */

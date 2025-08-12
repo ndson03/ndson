@@ -32,6 +32,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useState(""); // State cho API key
   const [isApiKeyReady, setIsApiKeyReady] = useState(false); // State kiểm tra API key đã sẵn sàng
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false); // State để điều khiển modal
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -221,6 +222,11 @@ export default function ChatPage() {
   const handleApiKeySet = (key: string) => {
     setApiKey(key);
     setIsApiKeyReady(key.trim() !== "");
+  };
+
+  // Handle click key button
+  const handleKeyConfigButtonClick = () => {
+    setShowApiKeyModal(true);
   };
 
   // Initialize on component mount
@@ -434,8 +440,12 @@ export default function ChatPage() {
 
   return (
     <div className="main-content">
-      <ApiKeyForm onApiKeySet={handleApiKeySet} />
-      
+      <ApiKeyForm 
+        onApiKeySet={handleApiKeySet} 
+        isOpen={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+      />
+
       <div className="container-fluid">
         <div className="chat-container">
           <div className="chat-box" id="chatBox" ref={chatBoxRef}>
@@ -449,8 +459,8 @@ export default function ChatPage() {
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder={
-                isApiKeyReady 
-                  ? "Hỏi bất kỳ điều gì" 
+                isApiKeyReady
+                  ? "Hỏi bất kỳ điều gì"
                   : "Vui lòng cấu hình API key để bắt đầu chat"
               }
               autoFocus={isApiKeyReady}
@@ -458,6 +468,15 @@ export default function ChatPage() {
               className={`questionInput ${!isApiKeyReady ? "disabled" : ""}`}
             />
             <div className="button-container">
+              <div className="left-buttons">
+                <div
+                  className="apikey-config-button"
+                  onClick={handleKeyConfigButtonClick}
+                  title="Cấu hình API Key"
+                >
+                  <i className="fa-solid fa-key"></i>
+                </div>
+              </div>
               <div className="right-buttons">
                 <div
                   className={`send-button ${
@@ -465,9 +484,7 @@ export default function ChatPage() {
                   }`}
                   onClick={askQuestion}
                   title={
-                    !isApiKeyReady 
-                      ? "Vui lòng cấu hình API key"
-                      : "Gửi câu hỏi"
+                    !isApiKeyReady ? "Vui lòng cấu hình API key" : "Gửi câu hỏi"
                   }
                 >
                   <i className="fas fa-arrow-up"></i>
