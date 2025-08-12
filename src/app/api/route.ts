@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 interface RequestBody {
   question: string;
   chatHistory: Array<{ role: string; parts: Array<{ text: string }> }>;
+  apiKey: string; // Thêm apiKey vào interface
 }
 
 // Định nghĩa interface cho Gemini API response
@@ -47,7 +48,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const { question, chatHistory } = body;
+    const { question, chatHistory, apiKey } = body;
 
     if (!question || typeof question !== "string") {
       return NextResponse.json(
@@ -69,6 +70,19 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
+    // Kiểm tra API key
+    if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
+      return NextResponse.json(
+        "API key is required",
+        {
+          status: 200,
+          headers: corsHeaders,
+        }
+      );
+    }
+
+    const trimmedApiKey = apiKey.trim();
+
     // Prepare user message
     const userMessage = {
       role: "user" as const,
@@ -85,12 +99,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Gemini API configuration
     const geminiApiUrl =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-    const geminiApiKey = "AIzaSyAOav82BONuO-owTfdlyB9tS3kZaNiXgS0";
 
-    // Call Gemini API
+    // Call Gemini API với API key từ request
     let geminiResponse: Response;
     try {
-      geminiResponse = await fetch(`${geminiApiUrl}?key=${geminiApiKey}`, {
+      geminiResponse = await fetch(`${geminiApiUrl}?key=${trimmedApiKey}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -115,13 +128,33 @@ export async function POST(request: Request): Promise<NextResponse> {
     if (!geminiResponse.ok) {
       let errorDetails: string;
       try {
-        errorDetails = await geminiResponse.text();
+        const errorData = await geminiResponse.json();
+        // Xử lý các loại lỗi phổ biến
+        if (geminiResponse.status === 400) {
+          return NextResponse.json(
+            "Invalid API key or request format",
+            {
+              status: 200,
+              headers: corsHeaders,
+            }
+          );
+        }
+        if (geminiResponse.status === 403) {
+          return NextResponse.json(
+            "API key không có quyền truy cập hoặc đã hết quota",
+            {
+              status: 200,
+              headers: corsHeaders,
+            }
+          );
+        }
+        errorDetails = errorData.error?.message || geminiResponse.statusText;
       } catch (e) {
-        // Error reading response details
+        errorDetails = geminiResponse.statusText;
       }
 
       return NextResponse.json(
-        `Gemini API error: ${geminiResponse.status} ${geminiResponse.statusText}`,
+        `Gemini API error (${geminiResponse.status}): ${errorDetails}`,
         {
           status: 200,
           headers: corsHeaders,

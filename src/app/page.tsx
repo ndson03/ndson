@@ -5,6 +5,7 @@ import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 import "highlight.js/styles/github.css";
 import hljs from "highlight.js";
+import ApiKeyForm from "../component/ApiKeyForm";
 
 interface Message {
   id?: number;
@@ -29,6 +30,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState(""); // State cho API key
+  const [isApiKeyReady, setIsApiKeyReady] = useState(false); // State kiểm tra API key đã sẵn sàng
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -214,6 +217,12 @@ export default function ChatPage() {
     }
   };
 
+  // Handle API Key được set từ ApiKeyManager
+  const handleApiKeySet = (key: string) => {
+    setApiKey(key);
+    setIsApiKeyReady(key.trim() !== "");
+  };
+
   // Initialize on component mount
   useEffect(() => {
     const init = async () => {
@@ -290,6 +299,12 @@ export default function ChatPage() {
   };
 
   const askQuestion = async () => {
+    // Kiểm tra API key trước khi gửi request
+    if (!isApiKeyReady || !apiKey.trim()) {
+      alert("Vui lòng cấu hình API key trước khi sử dụng!");
+      return;
+    }
+
     const question = input.trim();
     if (!question || isLoading) return;
 
@@ -314,6 +329,7 @@ export default function ChatPage() {
       const payload = {
         question,
         chatHistory,
+        apiKey, // Gửi API key trong payload
       };
 
       const response = await fetch("https://ndson.vercel.app/api", {
@@ -418,6 +434,8 @@ export default function ChatPage() {
 
   return (
     <div className="main-content">
+      <ApiKeyForm onApiKeySet={handleApiKeySet} />
+      
       <div className="container-fluid">
         <div className="chat-container">
           <div className="chat-box" id="chatBox" ref={chatBoxRef}>
@@ -430,16 +448,27 @@ export default function ChatPage() {
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Hỏi bất kỳ điều gì"
-              autoFocus
-              className="questionInput"
+              placeholder={
+                isApiKeyReady 
+                  ? "Hỏi bất kỳ điều gì" 
+                  : "Vui lòng cấu hình API key để bắt đầu chat"
+              }
+              autoFocus={isApiKeyReady}
+              disabled={!isApiKeyReady}
+              className={`questionInput ${!isApiKeyReady ? "disabled" : ""}`}
             />
             <div className="button-container">
               <div className="right-buttons">
                 <div
-                  className={`send-button ${isLoading ? "disabled" : ""}`}
+                  className={`send-button ${
+                    isLoading || !isApiKeyReady ? "disabled" : ""
+                  }`}
                   onClick={askQuestion}
-                  title="Gửi câu hỏi"
+                  title={
+                    !isApiKeyReady 
+                      ? "Vui lòng cấu hình API key"
+                      : "Gửi câu hỏi"
+                  }
                 >
                   <i className="fas fa-arrow-up"></i>
                 </div>
