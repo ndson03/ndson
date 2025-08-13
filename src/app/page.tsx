@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 import "highlight.js/styles/github.css";
@@ -30,14 +30,17 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState(""); // State cho API key
-  const [isApiKeyReady, setIsApiKeyReady] = useState(false); // State kiểm tra API key đã sẵn sàng
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false); // State để điều khiển modal
+  const [apiKey, setApiKey] = useState("");
+  const [isApiKeyReady, setIsApiKeyReady] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [isDBInitialized, setIsDBInitialized] = useState(false);
+  
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastMessageCountRef = useRef(0);
 
-  // Initialize IndexedDB
-  const initDB = (): Promise<IDBDatabase> => {
+  // Initialize IndexedDB - chỉ chạy 1 lần
+  const initDB = useCallback((): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -62,10 +65,10 @@ export default function ChatPage() {
         }
       };
     });
-  };
+  }, []);
 
-  // Save message to IndexedDB
-  const saveMessageToHistory = (isUser: boolean, content: string) => {
+  // Save message to IndexedDB - tối ưu với useCallback
+  const saveMessageToHistory = useCallback((isUser: boolean, content: string) => {
     if (!db) return;
 
     const transaction = db.transaction([STORE_NAME], "readwrite");
@@ -77,15 +80,19 @@ export default function ChatPage() {
       timestamp: new Date().toISOString(),
     };
 
-    const request = store.add(message);
+    store.add(message);
 
     transaction.oncomplete = () => {
       cleanupOldMessages();
     };
-  };
 
-  // Clean up old messages (keep only last 50)
-  const cleanupOldMessages = () => {
+    transaction.onerror = () => {
+      console.error("Failed to save message to history");
+    };
+  }, []);
+
+  // Clean up old messages - tối ưu với useCallback
+  const cleanupOldMessages = useCallback(() => {
     if (!db) return;
 
     const transaction = db.transaction([STORE_NAME], "readwrite");
@@ -106,10 +113,10 @@ export default function ChatPage() {
         cursor.continue();
       }
     };
-  };
+  }, []);
 
-  // Load chat history from IndexedDB
-  const loadChatHistory = () => {
+  // Load chat history - tối ưu với useCallback
+  const loadChatHistory = useCallback(() => {
     if (!db) return;
 
     const transaction = db.transaction([STORE_NAME], "readonly");
@@ -125,28 +132,32 @@ export default function ChatPage() {
         loadedMessages.push(cursor.value);
         cursor.continue();
       } else {
-        displayChatHistory(loadedMessages);
+        if (loadedMessages.length > 0) {
+          setMessages(loadedMessages);
+        } else {
+          const welcomeMessage: Message = {
+            isUser: false,
+            content: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
+            timestamp: new Date().toISOString(),
+          };
+          setMessages([welcomeMessage]);
+        }
       }
     };
-  };
 
-  // Display chat history
-  const displayChatHistory = (loadedMessages: Message[]) => {
-    if (loadedMessages.length > 0) {
-      setMessages(loadedMessages);
-    } else {
-      // Show welcome message if no history
+    request.onerror = () => {
+      console.error("Failed to load chat history");
       const welcomeMessage: Message = {
         isUser: false,
         content: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
         timestamp: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
-    }
-  };
+    };
+  }, []);
 
-  // Build chat history for API
-  const buildChatHistoryForAPI = (): Promise<ApiMessage[]> => {
+  // Build chat history for API - tối ưu với useCallback
+  const buildChatHistoryForAPI = useCallback((): Promise<ApiMessage[]> => {
     return new Promise((resolve) => {
       if (!db) {
         resolve([]);
@@ -166,7 +177,7 @@ export default function ChatPage() {
           const message = cursor.value;
 
           let textContent = message.content;
-          if (typeof textContent === "object" && textContent.text) {
+          if (typeof textContent === "object" && textContent?.text) {
             textContent = textContent.text;
           }
 
@@ -188,112 +199,153 @@ export default function ChatPage() {
       };
 
       request.onerror = () => {
+        console.error("Failed to build chat history for API");
         resolve([]);
       };
     });
-  };
-
-  // Clear all chat history
-  const clearChatHistory = () => {
-    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử chat không?")) {
-      if (!db) return;
-
-      const transaction = db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.clear();
-
-      request.onsuccess = () => {
-        // Reset to welcome message
-        const welcomeMessage: Message = {
-          isUser: false,
-          content: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
-          timestamp: new Date().toISOString(),
-        };
-        setMessages([welcomeMessage]);
-      };
-
-      request.onerror = () => {
-        alert("Có lỗi xảy ra khi xóa lịch sử chat!");
-      };
-    }
-  };
-
-  // Handle API Key được set từ ApiKeyManager
-  const handleApiKeySet = (key: string) => {
-    setApiKey(key);
-    setIsApiKeyReady(key.trim() !== "");
-  };
-
-  // Handle click key button
-  const handleKeyConfigButtonClick = () => {
-    setShowApiKeyModal(true);
-  };
-
-  // Initialize on component mount
-  useEffect(() => {
-    const init = async () => {
-      try {
-        await initDB();
-        loadChatHistory();
-      } catch (error) {
-        console.error("Failed to initialize IndexedDB:", error);
-        // Fallback to welcome message
-        const welcomeMessage: Message = {
-          isUser: false,
-          content: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
-          timestamp: new Date().toISOString(),
-        };
-        setMessages([welcomeMessage]);
-      }
-    };
-
-    init();
   }, []);
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Highlight code blocks when messages update
-  useEffect(() => {
-    if (chatBoxRef.current) {
-      const codeBlocks = chatBoxRef.current.querySelectorAll("pre code");
-      codeBlocks.forEach((block) => {
-        hljs.highlightElement(block as HTMLElement);
-      });
+  // Clear chat history - tối ưu với useCallback
+  const clearChatHistory = useCallback(() => {
+    if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử chat không?")) {
+      return;
     }
-  });
 
-  const scrollToBottom = () => {
-    if (chatBoxRef.current) {
-      const botMessages = chatBoxRef.current.querySelectorAll(".bot-message");
-      const lastBotMessage = botMessages[botMessages.length - 1];
+    if (!db) return;
 
-      if (lastBotMessage) {
-        lastBotMessage.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
+    const transaction = db.transaction([STORE_NAME], "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.clear();
+
+    request.onsuccess = () => {
+      const welcomeMessage: Message = {
+        isUser: false,
+        content: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages([welcomeMessage]);
+    };
+
+    request.onerror = () => {
+      alert("Có lỗi xảy ra khi xóa lịch sử chat!");
+    };
+  }, []);
+
+  // Handle API Key - tối ưu với useCallback
+  const handleApiKeySet = useCallback((key: string) => {
+    setApiKey(key);
+    setIsApiKeyReady(key.trim() !== "");
+  }, []);
+
+  // Handle key config button - tối ưu với useCallback
+  const handleKeyConfigButtonClick = useCallback(() => {
+    setShowApiKeyModal(true);
+  }, []);
+
+  // Copy code to clipboard - tối ưu với useCallback
+  const copyCodeToClipboard = useCallback(async (code: string, button: HTMLElement) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      
+      button.textContent = 'Đã sao chép';
+      
+      setTimeout(() => {
+        button.textContent = 'Sao chép';
+      }, 2000);
+      
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+      alert("Không thể sao chép code!");
+    }
+  }, []);
+
+  // Detect language - tối ưu với useCallback
+  const detectLanguage = useCallback((codeElement: HTMLElement): string => {
+    const classList = codeElement.className;
+    const languageMatch = classList.match(/(?:language-|hljs-)([a-zA-Z0-9+#-]+)/);
+    return languageMatch ? languageMatch[1] : 'code';
+  }, []);
+
+  // Add copy buttons to code blocks - tối ưu để tránh re-process
+  const addCopyButtonsToCodeBlocks = useCallback(() => {
+    if (!chatBoxRef.current) return;
+
+    const codeBlocks = chatBoxRef.current.querySelectorAll("pre code:not(.processed)");
+    
+    codeBlocks.forEach((block) => {
+      const pre = block.parentElement;
+      if (pre && !pre.classList.contains('code-block-processed')) {
+        // Đánh dấu đã xử lý
+        pre.classList.add('code-block-processed');
+        (block as HTMLElement).classList.add('processed');
+        
+        const language = detectLanguage(block as HTMLElement);
+
+        const codeHeader = document.createElement('div');
+        codeHeader.className = 'code-header';
+        
+        const languageLabel = document.createElement('span');
+        languageLabel.className = 'language-label';
+        languageLabel.textContent = language;
+        
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-button';
+        copyButton.textContent = 'Sao chép';
+        copyButton.title = 'Sao chép code';
+        
+        copyButton.addEventListener('click', () => {
+          const codeText = (block as HTMLElement).textContent || '';
+          copyCodeToClipboard(codeText, copyButton);
         });
-      } else {
-        chatBoxRef.current.scrollTo({
-          top: chatBoxRef.current.scrollHeight,
-          behavior: "smooth",
-        });
+
+        codeHeader.appendChild(languageLabel);
+        codeHeader.appendChild(copyButton);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        
+        pre.parentNode?.insertBefore(wrapper, pre);
+        wrapper.appendChild(codeHeader);
+        wrapper.appendChild(pre);
+        
+        pre.style.margin = '0';
+        pre.style.borderRadius = '0 0 8px 8px';
       }
-    }
-  };
+    });
+  }, [detectLanguage, copyCodeToClipboard]);
 
-  const autoResize = () => {
+  // Auto-resize textarea - tối ưu với useCallback
+  const autoResize = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       const contentHeight = textareaRef.current.scrollHeight;
       const newHeight = Math.min(contentHeight, 400);
       textareaRef.current.style.height = `${newHeight}px`;
     }
-  };
+  }, []);
 
-  const displayUserMessage = (text: string) => {
+  // Scroll to bottom - tối ưu với useCallback
+  const scrollToBottom = useCallback(() => {
+    if (!chatBoxRef.current) return;
+
+    const botMessages = chatBoxRef.current.querySelectorAll(".bot-message");
+    const lastBotMessage = botMessages[botMessages.length - 1];
+
+    if (lastBotMessage) {
+      lastBotMessage.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    } else {
+      chatBoxRef.current.scrollTo({
+        top: chatBoxRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, []);
+
+  // Display user message - tối ưu với useCallback
+  const displayUserMessage = useCallback((text: string) => {
     const newMessage: Message = {
       isUser: true,
       content: text,
@@ -302,10 +354,10 @@ export default function ChatPage() {
 
     setMessages((prev) => [...prev, newMessage]);
     saveMessageToHistory(true, text);
-  };
+  }, [saveMessageToHistory]);
 
-  const askQuestion = async () => {
-    // Kiểm tra API key trước khi gửi request
+  // Ask question - tối ưu với useCallback
+  const askQuestion = useCallback(async () => {
     if (!isApiKeyReady || !apiKey.trim()) {
       alert("Vui lòng cấu hình API key trước khi sử dụng!");
       return;
@@ -314,10 +366,8 @@ export default function ChatPage() {
     const question = input.trim();
     if (!question || isLoading) return;
 
-    // Display user message
     displayUserMessage(question);
 
-    // Add loading message
     const loadingMessage: Message = {
       isUser: false,
       content: "typing...",
@@ -325,8 +375,6 @@ export default function ChatPage() {
     };
 
     setMessages((prev) => [...prev, loadingMessage]);
-
-    // Clear input and set loading state
     setInput("");
     setIsLoading(true);
 
@@ -335,7 +383,7 @@ export default function ChatPage() {
       const payload = {
         question,
         chatHistory,
-        apiKey, // Gửi API key trong payload
+        apiKey,
       };
 
       const response = await fetch("https://ndson.vercel.app/api", {
@@ -353,7 +401,6 @@ export default function ChatPage() {
 
       const responseText = await response.json();
 
-      // Update loading message with response
       setMessages((prev) => {
         const newMessages = [...prev];
         if (newMessages.length > 0) {
@@ -365,14 +412,12 @@ export default function ChatPage() {
         return newMessages;
       });
 
-      // Save response to history
       saveMessageToHistory(false, responseText);
     } catch (error) {
       const errorMessage = `Có lỗi xảy ra: ${
         error instanceof Error ? error.message : "Unknown error"
       }`;
 
-      // Update loading message with error
       setMessages((prev) => {
         const newMessages = [...prev];
         if (newMessages.length > 0) {
@@ -384,83 +429,185 @@ export default function ChatPage() {
         return newMessages;
       });
 
-      // Save error to history
       saveMessageToHistory(false, errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [input, isLoading, isApiKeyReady, apiKey, displayUserMessage, buildChatHistoryForAPI, saveMessageToHistory]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  // Handle keyboard events - tối ưu với useCallback
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       askQuestion();
     }
-  };
+  }, [askQuestion]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  // Handle input change - tối ưu với useCallback
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
-    autoResize();
-  };
+    // Delay auto-resize để tránh blocking UI
+    requestAnimationFrame(() => {
+      autoResize();
+    });
+  }, [autoResize]);
 
-// Thay thế phần renderMessage của bạn bằng code này:
+  // Close modal handler - tối ưu với useCallback
+  const handleCloseModal = useCallback(() => {
+    setShowApiKeyModal(false);
+  }, []);
 
-const renderMessage = (message: Message, index: number) => {
-  if (message.isUser) {
+  // Render message - tối ưu với useCallback và tránh re-render
+  const renderMessage = useCallback((message: Message, index: number) => {
+    if (message.isUser) {
+      return (
+        <div key={`${index}-${message.timestamp}`} className="user-message-container">
+          <div className="user-message-text">{message.content}</div>
+        </div>
+      );
+    }
+
+    const isTyping = message.content === "typing...";
+
     return (
-      <div key={index} className="user-message-container">
-        <div className="user-message-text">{message.content}</div>
+      <div
+        key={`${index}-${message.timestamp}`}
+        className={`bot-message ${isTyping ? "loading-message" : ""}`}
+      >
+        <div className="message-content">
+          {isTyping ? (
+            <div className="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          ) : (
+            <div
+              className="markdown-content"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(marked(message.content) as string, {
+                  ALLOWED_TAGS: [
+                    'p', 'br', 'strong', 'em', 'u', 'strike', 'code', 'pre',
+                    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                    'blockquote', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'td', 'th'
+                  ],
+                  ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class']
+                }),
+              }}
+            />
+          )}
+        </div>
       </div>
     );
-  }
+  }, []);
 
-  const isTyping = message.content === "typing...";
+  // Memoize rendered messages để tránh re-render khi gõ input
+  const renderedMessages = useMemo(() => {
+    return messages.map(renderMessage);
+  }, [messages, renderMessage]);
 
-  return (
-    <div
-      key={index}
-      className={`bot-message ${isTyping ? "loading-message" : ""}`}
-    >
-      <div className="message-content">
-        {isTyping ? (
-          <div className="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        ) : (
-          <div
-            className="markdown-content" // Thêm class này
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(marked(message.content) as string, {
-                // Cấu hình DOMPurify để giữ lại các thuộc tính cần thiết
-                ALLOWED_TAGS: [
-                  'p', 'br', 'strong', 'em', 'u', 'strike', 'code', 'pre',
-                  'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                  'blockquote', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'td', 'th'
-                ],
-                ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class']
-              }),
-            }}
-          />
-        )}
-      </div>
-    </div>
-  );
-};
+  // Initialize DB - chỉ chạy 1 lần khi component mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const init = async () => {
+      try {
+        await initDB();
+        if (isMounted) {
+          setIsDBInitialized(true);
+        }
+      } catch (error) {
+        console.error("Failed to initialize IndexedDB:", error);
+        if (isMounted) {
+          const welcomeMessage: Message = {
+            isUser: false,
+            content: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
+            timestamp: new Date().toISOString(),
+          };
+          setMessages([welcomeMessage]);
+          setIsDBInitialized(true);
+        }
+      }
+    };
+
+    init();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initDB]);
+
+  // Load chat history khi DB đã khởi tạo
+  useEffect(() => {
+    if (isDBInitialized) {
+      loadChatHistory();
+    }
+  }, [isDBInitialized, loadChatHistory]);
+
+  // Auto-scroll khi có tin nhắn mới - tối ưu để chỉ chạy khi thực sự cần
+  useEffect(() => {
+    if (messages.length > lastMessageCountRef.current) {
+      lastMessageCountRef.current = messages.length;
+      // Delay scroll để đảm bảo DOM đã render xong
+      requestAnimationFrame(() => {
+        scrollToBottom();
+      });
+    }
+  }, [messages.length, scrollToBottom]);
+
+  // Highlight code blocks - tối ưu để chỉ chạy khi có tin nhắn bot mới
+  useEffect(() => {
+    if (!chatBoxRef.current || messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage.isUser && lastMessage.content !== "typing...") {
+      // Delay để đảm bảo DOM đã render
+      const timeoutId = setTimeout(() => {
+        if (chatBoxRef.current) {
+          const newCodeBlocks = chatBoxRef.current.querySelectorAll("pre code:not(.highlighted)");
+          
+          newCodeBlocks.forEach((block) => {
+            hljs.highlightElement(block as HTMLElement);
+            (block as HTMLElement).classList.add('highlighted');
+          });
+          
+          addCopyButtonsToCodeBlocks();
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, addCopyButtonsToCodeBlocks]);
+
+  // Memoize placeholder text
+  const placeholderText = useMemo(() => {
+    return isApiKeyReady
+      ? "Hỏi bất kỳ điều gì"
+      : "Vui lòng cấu hình API key để bắt đầu chat";
+  }, [isApiKeyReady]);
+
+  // Memoize button title
+  const sendButtonTitle = useMemo(() => {
+    return !isApiKeyReady ? "Vui lòng cấu hình API key" : "Gửi câu hỏi";
+  }, [isApiKeyReady]);
+
+  // Memoize send button disabled state
+  const isSendButtonDisabled = useMemo(() => {
+    return isLoading || !isApiKeyReady;
+  }, [isLoading, isApiKeyReady]);
 
   return (
     <div className="main-content">
       <ApiKeyForm 
         onApiKeySet={handleApiKeySet} 
         isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
+        onClose={handleCloseModal}
       />
 
       <div className="container-fluid">
         <div className="chat-container">
           <div className="chat-box" id="chatBox" ref={chatBoxRef}>
-            {messages.map(renderMessage)}
+            {renderedMessages}
           </div>
 
           <div className="chat-input-container">
@@ -469,11 +616,7 @@ const renderMessage = (message: Message, index: number) => {
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder={
-                isApiKeyReady
-                  ? "Hỏi bất kỳ điều gì"
-                  : "Vui lòng cấu hình API key để bắt đầu chat"
-              }
+              placeholder={placeholderText}
               autoFocus={isApiKeyReady}
               disabled={!isApiKeyReady}
               className={`questionInput ${!isApiKeyReady ? "disabled" : ""}`}
@@ -490,13 +633,9 @@ const renderMessage = (message: Message, index: number) => {
               </div>
               <div className="right-buttons">
                 <div
-                  className={`send-button ${
-                    isLoading || !isApiKeyReady ? "disabled" : ""
-                  }`}
+                  className={`send-button ${isSendButtonDisabled ? "disabled" : ""}`}
                   onClick={askQuestion}
-                  title={
-                    !isApiKeyReady ? "Vui lòng cấu hình API key" : "Gửi câu hỏi"
-                  }
+                  title={sendButtonTitle}
                 >
                   <i className="fas fa-arrow-up"></i>
                 </div>

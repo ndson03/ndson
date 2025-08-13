@@ -60,6 +60,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-size: 1rem;
 }
 
 /* === Main Layout === */
@@ -358,25 +359,70 @@ th {
   text-decoration: underline;
 }
 
-.markdown-content pre {
-  font-size: 14px;
+/* Wrapper cho code block */
+.code-block-wrapper {
+  position: relative;
+  margin: 16px 0;
   border-radius: 1rem;
-  margin-top: 1rem;
+  overflow: hidden;
 }
 
-.markdown-content pre code {
-  background-color: #f9f9f9;
+/* Header cho code block */
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 20px;
+  background: #f6f8fa;
+  color: #586069;
+}
+
+/* Label ngôn ngữ */
+.language-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+/* Style cho nút copy */
+.copy-button {
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.copy-button:active {
+  transform: scale(0.95);
+}
+
+/* Style cho pre element khi có header */
+.code-block-with-header {
+  margin: 0 !important;
+  border-radius: 0 0 8px 8px !important;
+}
+
+/* Pre element trong wrapper */
+.code-block-wrapper pre {
+  background: #f6f8fa;
+  border-radius: 0;
+  overflow-x: auto;
+  padding: 10px;
 }
 
 .markdown-content code {
-  font-size: inherit;
-  font-family: inherit;
-  background-color: #ececec;
-  border-radius: 0.25rem;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  font-weight: inherit;
-  color: #0d0d0d;
-  padding: 0 0.3rem;
+  border-radius: 3px;
+  font-size: 15px;
+}
 
+.markdown-content pre code {
+  background: none;
+}
+
+/* Animation cho icon khi copy thành công */
+.copy-button i {
+  transition: all 0.2s ease-in-out;
 }
