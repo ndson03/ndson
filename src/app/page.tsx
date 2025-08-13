@@ -457,12 +457,29 @@ export default function ChatPage() {
     setShowApiKeyModal(false);
   }, []);
 
+  // Render user message with preserved line breaks and indentation
+  const renderUserMessage = useCallback((content: string) => {
+    // Sử dụng white-space: pre-wrap để giữ nguyên khoảng trắng, tab và xuống dòng
+    return (
+      <div 
+        className="user-message-text" 
+        style={{ 
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          fontFamily: 'inherit'
+        }}
+      >
+        {content}
+      </div>
+    );
+  }, []);
+
   // Render message - tối ưu với useCallback và tránh re-render
   const renderMessage = useCallback((message: Message, index: number) => {
     if (message.isUser) {
       return (
         <div key={`${index}-${message.timestamp}`} className="user-message-container">
-          <div className="user-message-text">{message.content}</div>
+          {renderUserMessage(message.content)}
         </div>
       );
     }
@@ -499,7 +516,7 @@ export default function ChatPage() {
         </div>
       </div>
     );
-  }, []);
+  }, [renderUserMessage]);
 
   // Memoize rendered messages để tránh re-render khi gõ input
   const renderedMessages = useMemo(() => {

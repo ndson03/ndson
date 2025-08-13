@@ -222,7 +222,7 @@ td {
 }
 
 .user-message-text {
-  max-width: 75%;
+  max-width: 90%;
   padding: 5px 15px;
   border-radius: 1.5rem;
   background-color: #e9e9e980;
@@ -375,6 +375,7 @@ th {
   padding: 3px 20px;
   background: #f6f8fa;
   color: #586069;
+  font-size: 14px;
 }
 
 /* Label ngôn ngữ */
