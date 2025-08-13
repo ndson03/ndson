@@ -34,7 +34,7 @@ export default function ChatPage() {
   const [isApiKeyReady, setIsApiKeyReady] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [isDBInitialized, setIsDBInitialized] = useState(false);
-  
+
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastMessageCountRef = useRef(0);
@@ -68,28 +68,31 @@ export default function ChatPage() {
   }, []);
 
   // Save message to IndexedDB - tối ưu với useCallback
-  const saveMessageToHistory = useCallback((isUser: boolean, content: string) => {
-    if (!db) return;
+  const saveMessageToHistory = useCallback(
+    (isUser: boolean, content: string) => {
+      if (!db) return;
 
-    const transaction = db.transaction([STORE_NAME], "readwrite");
-    const store = transaction.objectStore(STORE_NAME);
+      const transaction = db.transaction([STORE_NAME], "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
 
-    const message: Message = {
-      isUser,
-      content,
-      timestamp: new Date().toISOString(),
-    };
+      const message: Message = {
+        isUser,
+        content,
+        timestamp: new Date().toISOString(),
+      };
 
-    store.add(message);
+      store.add(message);
 
-    transaction.oncomplete = () => {
-      cleanupOldMessages();
-    };
+      transaction.oncomplete = () => {
+        cleanupOldMessages();
+      };
 
-    transaction.onerror = () => {
-      console.error("Failed to save message to history");
-    };
-  }, []);
+      transaction.onerror = () => {
+        console.error("Failed to save message to history");
+      };
+    },
+    []
+  );
 
   // Clean up old messages - tối ưu với useCallback
   const cleanupOldMessages = useCallback(() => {
@@ -243,86 +246,108 @@ export default function ChatPage() {
   }, []);
 
   // Copy code to clipboard - tối ưu với useCallback
-  const copyCodeToClipboard = useCallback(async (code: string, button: HTMLElement) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      
-      button.textContent = 'Đã sao chép';
-      
-      setTimeout(() => {
-        button.textContent = 'Sao chép';
-      }, 2000);
-      
-    } catch (err) {
-      console.error("Failed to copy: ", err);
-      alert("Không thể sao chép code!");
-    }
-  }, []);
+  const copyCodeToClipboard = useCallback(
+    async (code: string, button: HTMLElement) => {
+      try {
+        await navigator.clipboard.writeText(code);
+
+        button.textContent = "Đã sao chép";
+
+        setTimeout(() => {
+          button.textContent = "Sao chép";
+        }, 2000);
+      } catch (err) {
+        console.error("Failed to copy: ", err);
+        alert("Không thể sao chép code!");
+      }
+    },
+    []
+  );
 
   // Detect language - tối ưu với useCallback
   const detectLanguage = useCallback((codeElement: HTMLElement): string => {
     const classList = codeElement.className;
-    const languageMatch = classList.match(/(?:language-|hljs-)([a-zA-Z0-9+#-]+)/);
-    return languageMatch ? languageMatch[1] : 'code';
+    const languageMatch = classList.match(
+      /(?:language-|hljs-)([a-zA-Z0-9+#-]+)/
+    );
+    return languageMatch ? languageMatch[1] : "code";
   }, []);
 
   // Add copy buttons to code blocks - tối ưu để tránh re-process
   const addCopyButtonsToCodeBlocks = useCallback(() => {
     if (!chatBoxRef.current) return;
 
-    const codeBlocks = chatBoxRef.current.querySelectorAll("pre code:not(.processed)");
-    
+    const codeBlocks = chatBoxRef.current.querySelectorAll(
+      "pre code:not(.processed)"
+    );
+
     codeBlocks.forEach((block) => {
       const pre = block.parentElement;
-      if (pre && !pre.classList.contains('code-block-processed')) {
+      if (pre && !pre.classList.contains("code-block-processed")) {
         // Đánh dấu đã xử lý
-        pre.classList.add('code-block-processed');
-        (block as HTMLElement).classList.add('processed');
-        
+        pre.classList.add("code-block-processed");
+        (block as HTMLElement).classList.add("processed");
+
         const language = detectLanguage(block as HTMLElement);
 
-        const codeHeader = document.createElement('div');
-        codeHeader.className = 'code-header';
-        
-        const languageLabel = document.createElement('span');
-        languageLabel.className = 'language-label';
+        const codeHeader = document.createElement("div");
+        codeHeader.className = "code-header";
+
+        const languageLabel = document.createElement("span");
+        languageLabel.className = "language-label";
         languageLabel.textContent = language;
-        
-        const copyButton = document.createElement('button');
-        copyButton.className = 'copy-button';
-        copyButton.textContent = 'Sao chép';
-        copyButton.title = 'Sao chép code';
-        
-        copyButton.addEventListener('click', () => {
-          const codeText = (block as HTMLElement).textContent || '';
+
+        const copyButton = document.createElement("button");
+        copyButton.className = "copy-button";
+        copyButton.textContent = "Sao chép";
+        copyButton.title = "Sao chép code";
+
+        copyButton.addEventListener("click", () => {
+          const codeText = (block as HTMLElement).textContent || "";
           copyCodeToClipboard(codeText, copyButton);
         });
 
         codeHeader.appendChild(languageLabel);
         codeHeader.appendChild(copyButton);
 
-        const wrapper = document.createElement('div');
-        wrapper.className = 'code-block-wrapper';
-        
+        const wrapper = document.createElement("div");
+        wrapper.className = "code-block-wrapper";
+
         pre.parentNode?.insertBefore(wrapper, pre);
         wrapper.appendChild(codeHeader);
         wrapper.appendChild(pre);
-        
-        pre.style.margin = '0';
-        pre.style.borderRadius = '0 0 8px 8px';
+
+        pre.style.margin = "0";
+        pre.style.borderRadius = "0 0 8px 8px";
       }
     });
   }, [detectLanguage, copyCodeToClipboard]);
 
   // Auto-resize textarea - tối ưu với useCallback
   const autoResize = useCallback(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      const contentHeight = textareaRef.current.scrollHeight;
-      const newHeight = Math.min(contentHeight, 400);
-      textareaRef.current.style.height = `${newHeight}px`;
-    }
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const parent = textarea.parentElement as HTMLElement;
+    if (!parent) return;
+
+    // Reset height để đo lại
+    textarea.style.height = "auto";
+    parent.style.height = "auto";
+
+    // Tính chiều cao mới
+    const newHeight = Math.min(textarea.scrollHeight, 400); // textarea tối đa 400px
+    textarea.style.height = `${newHeight}px`;
+
+    // Cha sẽ cao hơn textarea một chút vì còn nút bấm
+    const parentPadding = parent.offsetHeight - textarea.offsetHeight;
+    const newParentHeight = newHeight + parentPadding;
+    parent.style.height = `${Math.min(newParentHeight, 450)}px`; // cha tối đa 450px
   }, []);
+
+  useEffect(() => {
+    autoResize();
+  }, [input, autoResize]);
 
   // Scroll to bottom - tối ưu với useCallback
   const scrollToBottom = useCallback(() => {
@@ -345,16 +370,19 @@ export default function ChatPage() {
   }, []);
 
   // Display user message - tối ưu với useCallback
-  const displayUserMessage = useCallback((text: string) => {
-    const newMessage: Message = {
-      isUser: true,
-      content: text,
-      timestamp: new Date().toISOString(),
-    };
+  const displayUserMessage = useCallback(
+    (text: string) => {
+      const newMessage: Message = {
+        isUser: true,
+        content: text,
+        timestamp: new Date().toISOString(),
+      };
 
-    setMessages((prev) => [...prev, newMessage]);
-    saveMessageToHistory(true, text);
-  }, [saveMessageToHistory]);
+      setMessages((prev) => [...prev, newMessage]);
+      saveMessageToHistory(true, text);
+    },
+    [saveMessageToHistory]
+  );
 
   // Ask question - tối ưu với useCallback
   const askQuestion = useCallback(async () => {
@@ -433,24 +461,38 @@ export default function ChatPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, isApiKeyReady, apiKey, displayUserMessage, buildChatHistoryForAPI, saveMessageToHistory]);
+  }, [
+    input,
+    isLoading,
+    isApiKeyReady,
+    apiKey,
+    displayUserMessage,
+    buildChatHistoryForAPI,
+    saveMessageToHistory,
+  ]);
 
   // Handle keyboard events - tối ưu với useCallback
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      askQuestion();
-    }
-  }, [askQuestion]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        askQuestion();
+      }
+    },
+    [askQuestion]
+  );
 
   // Handle input change - tối ưu với useCallback
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-    // Delay auto-resize để tránh blocking UI
-    requestAnimationFrame(() => {
-      autoResize();
-    });
-  }, [autoResize]);
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setInput(e.target.value);
+      // Delay auto-resize để tránh blocking UI
+      requestAnimationFrame(() => {
+        autoResize();
+      });
+    },
+    [autoResize]
+  );
 
   // Close modal handler - tối ưu với useCallback
   const handleCloseModal = useCallback(() => {
@@ -461,12 +503,12 @@ export default function ChatPage() {
   const renderUserMessage = useCallback((content: string) => {
     // Sử dụng white-space: pre-wrap để giữ nguyên khoảng trắng, tab và xuống dòng
     return (
-      <div 
-        className="user-message-text" 
-        style={{ 
-          whiteSpace: 'pre-wrap',
-          wordWrap: 'break-word',
-          fontFamily: 'inherit'
+      <div
+        className="user-message-text"
+        style={{
+          whiteSpace: "pre-wrap",
+          wordWrap: "break-word",
+          fontFamily: "inherit",
         }}
       >
         {content}
@@ -475,48 +517,80 @@ export default function ChatPage() {
   }, []);
 
   // Render message - tối ưu với useCallback và tránh re-render
-  const renderMessage = useCallback((message: Message, index: number) => {
-    if (message.isUser) {
+  const renderMessage = useCallback(
+    (message: Message, index: number) => {
+      if (message.isUser) {
+        return (
+          <div
+            key={`${index}-${message.timestamp}`}
+            className="user-message-container"
+          >
+            {renderUserMessage(message.content)}
+          </div>
+        );
+      }
+
+      const isTyping = message.content === "typing...";
+
       return (
-        <div key={`${index}-${message.timestamp}`} className="user-message-container">
-          {renderUserMessage(message.content)}
+        <div
+          key={`${index}-${message.timestamp}`}
+          className={`bot-message ${isTyping ? "loading-message" : ""}`}
+        >
+          <div className="message-content">
+            {isTyping ? (
+              <div className="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            ) : (
+              <div
+                className="markdown-content"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(
+                    marked(message.content) as string,
+                    {
+                      ALLOWED_TAGS: [
+                        "p",
+                        "br",
+                        "strong",
+                        "em",
+                        "u",
+                        "strike",
+                        "code",
+                        "pre",
+                        "ul",
+                        "ol",
+                        "li",
+                        "h1",
+                        "h2",
+                        "h3",
+                        "h4",
+                        "h5",
+                        "h6",
+                        "blockquote",
+                        "a",
+                        "img",
+                        "table",
+                        "thead",
+                        "tbody",
+                        "tr",
+                        "td",
+                        "th",
+                      ],
+                      ALLOWED_ATTR: ["href", "src", "alt", "title", "class"],
+                    }
+                  ),
+                }}
+              />
+            )}
+          </div>
         </div>
       );
-    }
-
-    const isTyping = message.content === "typing...";
-
-    return (
-      <div
-        key={`${index}-${message.timestamp}`}
-        className={`bot-message ${isTyping ? "loading-message" : ""}`}
-      >
-        <div className="message-content">
-          {isTyping ? (
-            <div className="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          ) : (
-            <div
-              className="markdown-content"
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(marked(message.content) as string, {
-                  ALLOWED_TAGS: [
-                    'p', 'br', 'strong', 'em', 'u', 'strike', 'code', 'pre',
-                    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                    'blockquote', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'td', 'th'
-                  ],
-                  ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class']
-                }),
-              }}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }, [renderUserMessage]);
+    },
+    [renderUserMessage]
+  );
 
   // Memoize rendered messages để tránh re-render khi gõ input
   const renderedMessages = useMemo(() => {
@@ -581,13 +655,15 @@ export default function ChatPage() {
       // Delay để đảm bảo DOM đã render
       const timeoutId = setTimeout(() => {
         if (chatBoxRef.current) {
-          const newCodeBlocks = chatBoxRef.current.querySelectorAll("pre code:not(.highlighted)");
-          
+          const newCodeBlocks = chatBoxRef.current.querySelectorAll(
+            "pre code:not(.highlighted)"
+          );
+
           newCodeBlocks.forEach((block) => {
             hljs.highlightElement(block as HTMLElement);
-            (block as HTMLElement).classList.add('highlighted');
+            (block as HTMLElement).classList.add("highlighted");
           });
-          
+
           addCopyButtonsToCodeBlocks();
         }
       }, 100);
@@ -615,8 +691,8 @@ export default function ChatPage() {
 
   return (
     <div className="main-content">
-      <ApiKeyForm 
-        onApiKeySet={handleApiKeySet} 
+      <ApiKeyForm
+        onApiKeySet={handleApiKeySet}
         isOpen={showApiKeyModal}
         onClose={handleCloseModal}
       />
@@ -637,6 +713,7 @@ export default function ChatPage() {
               autoFocus={isApiKeyReady}
               disabled={!isApiKeyReady}
               className={`questionInput ${!isApiKeyReady ? "disabled" : ""}`}
+              rows={1}
             />
             <div className="button-container">
               <div className="left-buttons">
@@ -650,7 +727,9 @@ export default function ChatPage() {
               </div>
               <div className="right-buttons">
                 <div
-                  className={`send-button ${isSendButtonDisabled ? "disabled" : ""}`}
+                  className={`send-button ${
+                    isSendButtonDisabled ? "disabled" : ""
+                  }`}
                   onClick={askQuestion}
                   title={sendButtonTitle}
                 >
