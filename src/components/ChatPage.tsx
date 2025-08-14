@@ -33,6 +33,7 @@ function ChatPage() {
   const [deleteButtonElement, setDeleteButtonElement] =
     useState<HTMLElement | null>(null);
   const [storageService] = useState(() => new StorageService());
+  const [welcome, setWelcome] = useState(false);
 
   const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
   const { containerRef, scrollToBottom } = useScrollToBottom();
@@ -47,23 +48,13 @@ function ChatPage() {
         if (loadedMessages.length > 0) {
           setMessages(loadedMessages);
         } else {
-          setMessages([
-            {
-              isUser: false,
-              content: MESSAGES.WELCOME,
-              timestamp: new Date().toISOString(),
-            },
-          ]);
+          setMessages([]);
+          setWelcome(true);
         }
       } catch (error) {
         console.error("Failed to initialize app:", error);
-        setMessages([
-          {
-            isUser: false,
-            content: MESSAGES.WELCOME,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
+        setMessages([]);
+        setWelcome(true);
       }
     };
 
@@ -109,6 +100,8 @@ function ChatPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    setWelcome(false);
+
     await storageService.saveMessage(true, question);
 
     // Add loading message
@@ -161,13 +154,8 @@ function ChatPage() {
   const handleClearHistory = async () => {
     try {
       await storageService.clearMessages();
-      setMessages([
-        {
-          isUser: false,
-          content: MESSAGES.WELCOME,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      setMessages([]);
+      setWelcome(true);
       setShowDeletePopup(false);
       toast.success(MESSAGES.DELETE_SUCCESS);
     } catch (error) {
@@ -195,6 +183,11 @@ function ChatPage() {
 
   return (
     <div className="main-content">
+      {welcome && (
+        <div className="flex justify-center mt-59">
+          <p className="text-4xl">Xin chào, tôi có thể giúp gì cho bạn?</p>
+        </div>
+      )}
       <ApiKeyForm
         onApiKeySet={setApiKey}
         isOpen={showApiKeyModal}

@@ -103,12 +103,7 @@ export const useChat = () => {
   );
 
   const resetMessages = useCallback(() => {
-    const welcomeMessage: Message = {
-      isUser: false,
-      content: "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
-      timestamp: new Date().toISOString(),
-    };
-    setMessages([welcomeMessage]);
+    setMessages([]);
   }, []);
 
   return {
