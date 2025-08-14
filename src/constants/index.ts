@@ -7,7 +7,6 @@ export const DB_CONFIG = {
 
 export const API_CONFIG = {
   ENDPOINT: "https://ndson.vercel.app/api",
-  TIMEOUT: 30000,
 } as const;
 
 export const UI_CONFIG = {

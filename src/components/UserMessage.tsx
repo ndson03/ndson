@@ -13,7 +13,6 @@ export const UserMessage: React.FC<UserMessageProps> = ({ content }) => {
         style={{
           whiteSpace: "pre-wrap",
           wordWrap: "break-word",
-          fontFamily: "inherit",
         }}
       >
         {content}

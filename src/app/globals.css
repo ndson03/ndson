@@ -395,6 +395,12 @@ th {
   background: #f9f9f9;
 }
 
+.markdown-content pre code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f9f9f9;
+}
+
 .markdown-content code {
   background-color: #ececec;
   font-weight: 500;

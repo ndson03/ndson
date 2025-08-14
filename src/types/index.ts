@@ -9,3 +9,9 @@ export interface ApiMessage {
   role: "user" | "model";
   parts: { text: string }[];
 }
+
+export interface ApiPayload {
+  question: string;
+  chatHistory: ApiMessage[];
+  apiKey: string;
+}
