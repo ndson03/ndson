@@ -34,28 +34,31 @@ export const useIndexedDB = () => {
     });
   }, []);
 
-  const saveMessageToHistory = useCallback((isUser: boolean, content: string) => {
-    if (!dbRef.current) return;
+  const saveMessageToHistory = useCallback(
+    (isUser: boolean, content: string) => {
+      if (!dbRef.current) return;
 
-    const transaction = dbRef.current.transaction([STORE_NAME], "readwrite");
-    const store = transaction.objectStore(STORE_NAME);
+      const transaction = dbRef.current.transaction([STORE_NAME], "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
 
-    const message: Message = {
-      isUser,
-      content,
-      timestamp: new Date().toISOString(),
-    };
+      const message: Message = {
+        isUser,
+        content,
+        timestamp: new Date().toISOString(),
+      };
 
-    store.add(message);
+      store.add(message);
 
-    transaction.oncomplete = () => {
-      cleanupOldMessages();
-    };
+      transaction.oncomplete = () => {
+        cleanupOldMessages();
+      };
 
-    transaction.onerror = () => {
-      console.error("Failed to save message to history");
-    };
-  }, []);
+      transaction.onerror = () => {
+        console.error("Failed to save message to history");
+      };
+    },
+    []
+  );
 
   const cleanupOldMessages = useCallback(() => {
     if (!dbRef.current) return;
@@ -130,7 +133,7 @@ export const useIndexedDB = () => {
         if (cursor) {
           const message = cursor.value;
           let textContent = message.content;
-          
+
           if (typeof textContent === "object" && textContent?.text) {
             textContent = textContent.text;
           }

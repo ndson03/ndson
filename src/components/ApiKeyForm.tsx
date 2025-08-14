@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Key, Save, X } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Eye, EyeOff, Key, Save, X } from "lucide-react";
 
 interface ApiKeyManagerProps {
   onApiKeySet: (apiKey: string) => void;
@@ -7,14 +7,18 @@ interface ApiKeyManagerProps {
   onClose: () => void;
 }
 
-const ApiKeyForm: React.FC<ApiKeyManagerProps> = ({ onApiKeySet, isOpen, onClose }) => {
-  const [apiKey, setApiKey] = useState('');
+const ApiKeyForm: React.FC<ApiKeyManagerProps> = ({
+  onApiKeySet,
+  isOpen,
+  onClose,
+}) => {
+  const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
-    const storedApiKey = localStorage.getItem('gemini_api_key');
-    if (storedApiKey && storedApiKey.trim() !== '') {
+    const storedApiKey = localStorage.getItem("gemini_api_key");
+    if (storedApiKey && storedApiKey.trim() !== "") {
       setHasApiKey(true);
       onApiKeySet(storedApiKey);
     }
@@ -22,30 +26,30 @@ const ApiKeyForm: React.FC<ApiKeyManagerProps> = ({ onApiKeySet, isOpen, onClose
 
   useEffect(() => {
     if (isOpen) {
-      const currentKey = localStorage.getItem('gemini_api_key') || '';
+      const currentKey = localStorage.getItem("gemini_api_key") || "";
       setApiKey(currentKey);
     }
   }, [isOpen]);
 
   const handleSaveApiKey = () => {
     const trimmedKey = apiKey.trim();
-    if (trimmedKey === '') {
-      alert('Vui lòng nhập API key!');
+    if (trimmedKey === "") {
+      alert("Vui lòng nhập API key!");
       return;
     }
 
-    localStorage.setItem('gemini_api_key', trimmedKey);
+    localStorage.setItem("gemini_api_key", trimmedKey);
     setHasApiKey(true);
     onApiKeySet(trimmedKey);
     onClose();
   };
 
   const handleRemoveApiKey = () => {
-    if (confirm('Bạn có chắc chắn muốn xóa API key?')) {
-      localStorage.removeItem('gemini_api_key');
+    if (confirm("Bạn có chắc chắn muốn xóa API key?")) {
+      localStorage.removeItem("gemini_api_key");
       setHasApiKey(false);
-      setApiKey('');
-      onApiKeySet('');
+      setApiKey("");
+      onApiKeySet("");
       onClose();
     }
   };
@@ -77,7 +81,7 @@ const ApiKeyForm: React.FC<ApiKeyManagerProps> = ({ onApiKeySet, isOpen, onClose
               </label>
               <div className="relative">
                 <input
-                  type={showApiKey ? 'text' : 'password'}
+                  type={showApiKey ? "text" : "password"}
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="apikey..."
@@ -88,7 +92,7 @@ const ApiKeyForm: React.FC<ApiKeyManagerProps> = ({ onApiKeySet, isOpen, onClose
                   type="button"
                   onClick={() => setShowApiKey(!showApiKey)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
+                  aria-label={showApiKey ? "Hide API key" : "Show API key"}
                 >
                   {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -100,7 +104,17 @@ const ApiKeyForm: React.FC<ApiKeyManagerProps> = ({ onApiKeySet, isOpen, onClose
                 Hướng dẫn lấy Gemini API Key:
               </h4>
               <ol className="text-sm text-blue-800 space-y-1">
-                <li>1. Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">Google AI Studio</a></li>
+                <li>
+                  1. Truy cập{" "}
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-blue-600"
+                  >
+                    Google AI Studio
+                  </a>
+                </li>
                 <li>2. Đăng nhập bằng tài khoản Google</li>
                 <li>3. Nhấn "Create API Key"</li>
                 <li>4. Sao chép và dán API key vào đây</li>
@@ -116,7 +130,7 @@ const ApiKeyForm: React.FC<ApiKeyManagerProps> = ({ onApiKeySet, isOpen, onClose
                 <Save size={16} />
                 <span>Lưu API Key</span>
               </button>
-              
+
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"

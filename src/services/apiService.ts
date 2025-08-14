@@ -1,5 +1,5 @@
-import { ApiMessage } from "../types";
 import { API_CONFIG } from "../constants";
+import { ApiMessage } from "../types";
 
 export interface ApiPayload {
   question: string;
@@ -30,13 +30,13 @@ export class ApiService {
       }
 
       return await response.json();
-    } catch (error) {
+    } catch (error: any) {
       clearTimeout(timeoutId);
-      
-      if (error.name === 'AbortError') {
-        throw new Error('Request timeout');
+
+      if (error.name === "AbortError") {
+        throw new Error("Request timeout");
       }
-      
+
       throw error;
     }
   }

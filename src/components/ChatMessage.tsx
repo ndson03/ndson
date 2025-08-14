@@ -10,7 +10,9 @@ interface ChatMessageProps {
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, index }) => {
   if (message.isUser) {
-    return <UserMessage content={message.content} timestamp={message.timestamp} />;
+    return (
+      <UserMessage content={message.content} timestamp={message.timestamp} />
+    );
   }
 
   return <BotMessage content={message.content} timestamp={message.timestamp} />;

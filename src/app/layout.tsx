@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "highlight.js/styles/github.css";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {

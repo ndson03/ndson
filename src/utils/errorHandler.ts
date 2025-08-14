@@ -1,9 +1,5 @@
 export class ChatError extends Error {
-  constructor(
-    message: string,
-    public code?: string,
-    public details?: any
-  ) {
+  constructor(message: string, public code?: string, public details?: any) {
     super(message);
     this.name = "ChatError";
   }

@@ -14,12 +14,18 @@ export const useAutoResize = () => {
     textarea.style.height = "auto";
     parent.style.height = "auto";
 
-    const newHeight = Math.min(textarea.scrollHeight, UI_CONFIG.MAX_TEXTAREA_HEIGHT);
+    const newHeight = Math.min(
+      textarea.scrollHeight,
+      UI_CONFIG.MAX_TEXTAREA_HEIGHT
+    );
     textarea.style.height = `${newHeight}px`;
 
     const parentPadding = parent.offsetHeight - textarea.offsetHeight;
     const newParentHeight = newHeight + parentPadding;
-    parent.style.height = `${Math.min(newParentHeight, UI_CONFIG.MAX_CONTAINER_HEIGHT)}px`;
+    parent.style.height = `${Math.min(
+      newParentHeight,
+      UI_CONFIG.MAX_CONTAINER_HEIGHT
+    )}px`;
   }, []);
 
   return {

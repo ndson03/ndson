@@ -2,7 +2,7 @@ import { useCallback, useRef } from "react";
 import { UI_CONFIG } from "../constants";
 
 export const useScrollToBottom = () => {
-  const containerRef = useRef<HTMLElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
     if (!containerRef.current) return;

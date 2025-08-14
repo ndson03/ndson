@@ -25,7 +25,10 @@ export const DeletePopup: React.FC<DeletePopupProps> = ({
       const top = targetRect.top - popupRect.height - 12;
 
       setPosition({
-        left: Math.max(8, Math.min(left, window.innerWidth - popupRect.width - 8)),
+        left: Math.max(
+          8,
+          Math.min(left, window.innerWidth - popupRect.width - 8)
+        ),
         top: Math.max(8, top),
       });
     }

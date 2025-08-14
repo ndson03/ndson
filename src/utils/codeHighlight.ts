@@ -1,7 +1,10 @@
 import hljs from "highlight.js";
 import toast from "react-hot-toast";
 
-export const copyCodeToClipboard = async (code: string, button: HTMLElement) => {
+export const copyCodeToClipboard = async (
+  code: string,
+  button: HTMLElement
+) => {
   try {
     await navigator.clipboard.writeText(code);
     button.textContent = "Đã sao chép";
@@ -66,12 +69,14 @@ export const addCopyButtonsToCodeBlocks = (container: HTMLElement) => {
 };
 
 export const highlightCodeBlocks = (container: HTMLElement) => {
-  const newCodeBlocks = container.querySelectorAll("pre code:not(.highlighted)");
-  
+  const newCodeBlocks = container.querySelectorAll(
+    "pre code:not(.highlighted)"
+  );
+
   newCodeBlocks.forEach((block) => {
     hljs.highlightElement(block as HTMLElement);
     (block as HTMLElement).classList.add("highlighted");
   });
-  
+
   addCopyButtonsToCodeBlocks(container);
 };

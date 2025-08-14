@@ -39,46 +39,34 @@ export async function POST(request: Request): Promise<NextResponse> {
     try {
       body = await request.json();
     } catch (parseError) {
-      return NextResponse.json(
-        "Invalid JSON in request body",
-        {
-          status: 200,
-          headers: corsHeaders,
-        }
-      );
+      return NextResponse.json("Invalid JSON in request body", {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
     const { question, chatHistory, apiKey } = body;
 
     if (!question || typeof question !== "string") {
-      return NextResponse.json(
-        "Question is required and must be a string",
-        {
-          status: 200,
-          headers: corsHeaders,
-        }
-      );
+      return NextResponse.json("Question is required and must be a string", {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
     if (!Array.isArray(chatHistory)) {
-      return NextResponse.json(
-        "chatHistory must be an array",
-        {
-          status: 200,
-          headers: corsHeaders,
-        }
-      );
+      return NextResponse.json("chatHistory must be an array", {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
     // Kiểm tra API key
     if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
-      return NextResponse.json(
-        "API key is required",
-        {
-          status: 200,
-          headers: corsHeaders,
-        }
-      );
+      return NextResponse.json("API key is required", {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
     const trimmedApiKey = apiKey.trim();
@@ -108,20 +96,17 @@ export async function POST(request: Request): Promise<NextResponse> {
         headers: {
           "Content-Type": "application/json",
           "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
+          Pragma: "no-cache",
+          Expires: "0",
         },
         body: JSON.stringify(requestBody),
         cache: "no-cache" as RequestInit["cache"],
       });
     } catch (fetchError) {
-      return NextResponse.json(
-        "Failed to connect to Gemini API",
-        {
-          status: 200,
-          headers: corsHeaders,
-        }
-      );
+      return NextResponse.json("Failed to connect to Gemini API", {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
     // Check if Gemini API request was successful
@@ -131,13 +116,10 @@ export async function POST(request: Request): Promise<NextResponse> {
         const errorData = await geminiResponse.json();
         // Xử lý các loại lỗi phổ biến
         if (geminiResponse.status === 400) {
-          return NextResponse.json(
-            "Invalid API key or request format",
-            {
-              status: 200,
-              headers: corsHeaders,
-            }
-          );
+          return NextResponse.json("Invalid API key or request format", {
+            status: 200,
+            headers: corsHeaders,
+          });
         }
         if (geminiResponse.status === 403) {
           return NextResponse.json(
@@ -167,13 +149,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     try {
       geminiData = await geminiResponse.json();
     } catch (parseError) {
-      return NextResponse.json(
-        "Invalid response from Gemini API",
-        {
-          status: 200,
-          headers: corsHeaders,
-        }
-      );
+      return NextResponse.json("Invalid response from Gemini API", {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
     // Extract text from Gemini response
@@ -200,13 +179,10 @@ export async function POST(request: Request): Promise<NextResponse> {
         throw new Error("Empty text in Gemini response");
       }
     } catch (extractError) {
-      return NextResponse.json(
-        "Failed to extract response from Gemini API",
-        {
-          status: 200,
-          headers: corsHeaders,
-        }
-      );
+      return NextResponse.json("Failed to extract response from Gemini API", {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
     // Return response text directly
@@ -215,13 +191,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       headers: corsHeaders,
     });
   } catch (error) {
-    return NextResponse.json(
-      "Internal server error",
-      {
-        status: 200,
-        headers: corsHeaders,
-      }
-    );
+    return NextResponse.json("Internal server error", {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 }
 

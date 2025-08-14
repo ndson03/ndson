@@ -1,5 +1,5 @@
-import { Message, ApiMessage } from "../types";
 import { DB_CONFIG } from "../constants";
+import { ApiMessage, Message } from "../types";
 
 export class StorageService {
   private db: IDBDatabase | null = null;
@@ -33,7 +33,10 @@ export class StorageService {
     if (!this.db) throw new Error("Database not initialized");
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([DB_CONFIG.STORE_NAME], "readwrite");
+      const transaction = this.db!.transaction(
+        [DB_CONFIG.STORE_NAME],
+        "readwrite"
+      );
       const store = transaction.objectStore(DB_CONFIG.STORE_NAME);
 
       const message: Message = {
@@ -57,7 +60,10 @@ export class StorageService {
     if (!this.db) throw new Error("Database not initialized");
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([DB_CONFIG.STORE_NAME], "readonly");
+      const transaction = this.db!.transaction(
+        [DB_CONFIG.STORE_NAME],
+        "readonly"
+      );
       const store = transaction.objectStore(DB_CONFIG.STORE_NAME);
       const index = store.index("timestamp");
       const request = index.openCursor(null, "next");
@@ -80,15 +86,15 @@ export class StorageService {
 
   async buildApiHistory(): Promise<ApiMessage[]> {
     const messages = await this.loadMessages();
-    
-    return messages.map(message => {
-      let textContent = message.content;
+
+    return messages.map((message) => {
+      let textContent: any = message.content;
       if (typeof textContent === "object" && textContent?.text) {
         textContent = textContent.text;
       }
 
       return {
-        role: message.isUser ? "user" as const : "model" as const,
+        role: message.isUser ? ("user" as const) : ("model" as const),
         parts: [{ text: textContent }],
       };
     });
@@ -98,7 +104,10 @@ export class StorageService {
     if (!this.db) throw new Error("Database not initialized");
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([DB_CONFIG.STORE_NAME], "readwrite");
+      const transaction = this.db!.transaction(
+        [DB_CONFIG.STORE_NAME],
+        "readwrite"
+      );
       const store = transaction.objectStore(DB_CONFIG.STORE_NAME);
       const request = store.clear();
 
@@ -110,7 +119,10 @@ export class StorageService {
   private cleanupOldMessages(): void {
     if (!this.db) return;
 
-    const transaction = this.db.transaction([DB_CONFIG.STORE_NAME], "readwrite");
+    const transaction = this.db.transaction(
+      [DB_CONFIG.STORE_NAME],
+      "readwrite"
+    );
     const store = transaction.objectStore(DB_CONFIG.STORE_NAME);
     const index = store.index("timestamp");
 

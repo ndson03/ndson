@@ -44,19 +44,24 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     parent.style.height = `${Math.min(newParentHeight, 450)}px`;
   }, []);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onInputChange(e.target.value);
-    requestAnimationFrame(() => {
-      autoResize();
-    });
-  }, [onInputChange, autoResize]);
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onInputChange(e.target.value);
+      requestAnimationFrame(() => {
+        autoResize();
+      });
+    },
+    [onInputChange, autoResize]
+  );
 
   useEffect(() => {
     autoResize();
   }, [input, autoResize]);
 
   const isSendButtonDisabled = isLoading || !isApiKeyReady;
-  const sendButtonTitle = !isApiKeyReady ? "Vui lòng cấu hình API key" : "Gửi câu hỏi";
+  const sendButtonTitle = !isApiKeyReady
+    ? "Vui lòng cấu hình API key"
+    : "Gửi câu hỏi";
 
   return (
     <div className="chat-input-container">
