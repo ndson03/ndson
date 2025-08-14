@@ -5,7 +5,9 @@ import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 import "highlight.js/styles/github.css";
 import hljs from "highlight.js";
+import { Key, ArrowUp, Trash2 } from "lucide-react";
 import ApiKeyForm from "../component/ApiKeyForm";
+import toast from "react-hot-toast";
 
 interface Message {
   id?: number;
@@ -18,6 +20,95 @@ interface ApiMessage {
   role: "user" | "model";
   parts: { text: string }[];
 }
+
+// Delete Confirmation Popup Component with Tailwind
+interface DeletePopupProps {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  targetElement: HTMLElement | null;
+}
+
+const DeletePopup: React.FC<DeletePopupProps> = ({
+  isOpen,
+  onConfirm,
+  onCancel,
+  targetElement,
+}) => {
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (isOpen && targetElement && popupRef.current) {
+      const targetRect = targetElement.getBoundingClientRect();
+      const popupRect = popupRef.current.getBoundingClientRect();
+
+      // Đặt popup ngay phía trên nút delete, căn giữa
+      const left = targetRect.left + targetRect.width / 2 - popupRect.width / 2;
+      const top = targetRect.top - popupRect.height - 12; // 12px khoảng cách từ popup đến nút
+
+      setPosition({
+        left: Math.max(
+          8,
+          Math.min(left, window.innerWidth - popupRect.width - 8)
+        ), // Đảm bảo không bị tràn ra ngoài
+        top: Math.max(8, top),
+      });
+    }
+  }, [isOpen, targetElement]);
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Overlay để đóng popup khi click bên ngoài */}
+      <div className="fixed inset-0 z-40 bg-transparent" onClick={onCancel} />
+
+      {/* Popup */}
+      <div
+        ref={popupRef}
+        className="fixed z-50 bg-white dark:bg-[#2a2a2a] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700"
+        style={{
+          left: `${position.left}px`,
+          top: `${position.top}px`,
+        }}
+      >
+        <div className="p-3 min-w-[200px]">
+          <div className="text-sm text-gray-800 dark:text-gray-200 mb-3 font-medium flex justify-center">
+            Xóa toàn bộ lịch sử chat?
+          </div>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onConfirm}
+              className="px-3 py-1.5 text-xs rounded-md text-red-600 bg-red-50 hover:bg-red-100 transition-colors duration-150 cursor-pointer"
+            >
+              Xóa
+            </button>
+            <button
+              onClick={onCancel}
+              className="px-3 py-1.5 text-xs rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition-colors duration-150 cursor-pointer"
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+
+        {/* Arrow */}
+        <div
+          className="absolute top-full left-1/2 -translate-x-1/2"
+          style={{
+            width: 0,
+            height: 0,
+            borderLeft: "6px solid transparent",
+            borderRight: "6px solid transparent",
+            borderTop: "6px solid white",
+            filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.05))",
+          }}
+        />
+      </div>
+    </>
+  );
+};
 
 // IndexedDB Configuration
 const DB_NAME = "ChatDB";
@@ -34,6 +125,11 @@ export default function ChatPage() {
   const [isApiKeyReady, setIsApiKeyReady] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [isDBInitialized, setIsDBInitialized] = useState(false);
+
+  // Delete popup state
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [deleteButtonElement, setDeleteButtonElement] =
+    useState<HTMLElement | null>(null);
 
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -208,12 +304,14 @@ export default function ChatPage() {
     });
   }, []);
 
-  // Clear chat history - tối ưu với useCallback
-  const clearChatHistory = useCallback(() => {
-    if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử chat không?")) {
-      return;
-    }
+  // Clear chat history with popup confirmation - cập nhật
+  const handleDeleteButtonClick = useCallback((e: React.MouseEvent) => {
+    const buttonElement = e.currentTarget as HTMLElement;
+    setDeleteButtonElement(buttonElement);
+    setShowDeletePopup(true);
+  }, []);
 
+  const confirmClearChatHistory = useCallback(() => {
     if (!db) return;
 
     const transaction = db.transaction([STORE_NAME], "readwrite");
@@ -227,11 +325,18 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
+      setShowDeletePopup(false);
+      toast.success("Xóa thành công");
     };
 
     request.onerror = () => {
       alert("Có lỗi xảy ra khi xóa lịch sử chat!");
+      setShowDeletePopup(false);
     };
+  }, []);
+
+  const cancelDeleteChatHistory = useCallback(() => {
+    setShowDeletePopup(false);
   }, []);
 
   // Handle API Key - tối ưu với useCallback
@@ -252,7 +357,7 @@ export default function ChatPage() {
         await navigator.clipboard.writeText(code);
 
         button.textContent = "Đã sao chép";
-
+        toast.success("Đã sao chép");
         setTimeout(() => {
           button.textContent = "Sao chép";
         }, 2000);
@@ -697,6 +802,14 @@ export default function ChatPage() {
         onClose={handleCloseModal}
       />
 
+      {/* Delete Confirmation Popup */}
+      <DeletePopup
+        isOpen={showDeletePopup}
+        onConfirm={confirmClearChatHistory}
+        onCancel={cancelDeleteChatHistory}
+        targetElement={deleteButtonElement}
+      />
+
       <div className="container-fluid">
         <div className="chat-container">
           <div className="chat-box" id="chatBox" ref={chatBoxRef}>
@@ -722,7 +835,7 @@ export default function ChatPage() {
                   onClick={handleKeyConfigButtonClick}
                   title="Cấu hình API Key"
                 >
-                  <i className="fa-solid fa-key"></i>
+                  <Key size={16} />
                 </div>
               </div>
               <div className="right-buttons">
@@ -733,14 +846,14 @@ export default function ChatPage() {
                   onClick={askQuestion}
                   title={sendButtonTitle}
                 >
-                  <i className="fas fa-arrow-up"></i>
+                  <ArrowUp size={16} />
                 </div>
                 <div
                   className="clear-button"
-                  onClick={clearChatHistory}
+                  onClick={handleDeleteButtonClick}
                   title="Xóa lịch sử chat"
                 >
-                  <i className="fas fa-trash-alt"></i>
+                  <Trash2 size={16} />
                 </div>
               </div>
             </div>

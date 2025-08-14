@@ -79,7 +79,7 @@ body {
   height: 100%;
   overflow: hidden;
   position: relative;
-  width: 60vw;
+  width: 900px;
   margin: 0 auto;
 }
 
@@ -97,7 +97,7 @@ body {
   align-items: stretch; /* để con rộng & cao hết chiều ngang */
   position: fixed;
   bottom: 0;
-  width: 60vw;
+  width: 900;
   z-index: 10;
   border: 1px solid #00000026;
   border-radius: 2rem;
@@ -145,41 +145,24 @@ body {
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease;
+  color: #4a4a4a; /* Màu icon/text xám */
+  background-color: #f7f7f8; /* Nền xám nhạt */
+  border: none; /* ChatGPT thường không viền */
 }
 
-.send-button {
-  color: var(--primary-color);
-  background-color: white;
-  border: 1px solid var(--primary-color);
-}
-
-.send-button:hover {
-  color: white;
-  background-color: var(--primary-color);
-}
-
-.clear-button {
-  color: #e74c3c;
-  background-color: white;
-  border: 1px solid #e74c3c;
-}
-
-.clear-button:hover {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.apikey-config-button {
-  color: #e3971d;
-  background-color: white;
-  border: 1px solid #e3971d;
-}
-
+.send-button:hover,
+.clear-button:hover,
 .apikey-config-button:hover {
-  color: white;
-  background-color: #e3971d;
+  background-color: #e5e5e5; /* Hover nền xám đậm hơn chút */
 }
+
+.send-button:active,
+.clear-button:active,
+.apikey-config-button:active {
+  background-color: #d4d4d4; /* Khi bấm giữ */
+}
+
 
 /* === Messages === */
 .bot-message {
@@ -211,6 +194,7 @@ td {
   flex-direction: column;
   align-items: flex-end;
   line-height: 2.2;
+  margin-bottom: 10px;
 }
 
 .user-message-text {
