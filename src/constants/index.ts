@@ -6,7 +6,7 @@ export const DB_CONFIG = {
 } as const;
 
 export const API_CONFIG = {
-  ENDPOINT: "https://ndson.vercel.app/api",
+  ENDPOINT: "/api",
 } as const;
 
 export const UI_CONFIG = {
