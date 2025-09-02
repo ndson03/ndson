@@ -55,8 +55,28 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   );
 
   useEffect(() => {
+    if (isApiKeyReady && textareaRef.current) {
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isApiKeyReady]);
+
+  useEffect(() => {
+    if (textareaRef.current && isApiKeyReady) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
+  useEffect(() => {
     autoResize();
   }, [input, autoResize]);
+
+  const handleChatInputContainerClick = useCallback(() => {
+    textareaRef.current?.focus();
+  }, [textareaRef]);
 
   const isSendButtonDisabled = isLoading || !isApiKeyReady;
   const sendButtonTitle = !isApiKeyReady
@@ -64,14 +84,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     : "Gửi câu hỏi";
 
   return (
-    <div className="chat-input-container">
+    <div
+      className="chat-input-container"
+      onClick={handleChatInputContainerClick}
+    >
       <textarea
         ref={textareaRef}
         value={input}
         onChange={handleInputChange}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        autoFocus={isApiKeyReady}
         disabled={!isApiKeyReady}
         className={`questionInput ${!isApiKeyReady ? "disabled" : ""}`}
         rows={1}

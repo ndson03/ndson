@@ -107,6 +107,7 @@ body {
   box-shadow: var(--card-shadow);
   max-height: 450px;
   overflow-y: auto;
+  cursor: text;
 }
 
 .button-container {
