@@ -15,6 +15,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { DeletePopup } from "./DeletePopup";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
+import WelcomeMessage from "./WelcomeMessage";
 
 export default function ChatPageWrapper() {
   return (
@@ -183,11 +184,7 @@ function ChatPage() {
 
   return (
     <div className="main-content">
-      {welcome && (
-        <div className="flex justify-center mt-59">
-          <p className="text-4xl">Xin chào, tôi có thể giúp gì cho bạn?</p>
-        </div>
-      )}
+      {welcome && <WelcomeMessage />}
       <ApiKeyForm
         onApiKeySet={setApiKey}
         isOpen={showApiKeyModal}
