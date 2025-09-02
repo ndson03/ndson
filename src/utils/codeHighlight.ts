@@ -1,14 +1,24 @@
 import hljs from "highlight.js";
+import { Copy, Check } from "lucide-react";
+import { createRoot, Root } from "react-dom/client";
+import React from "react";
 
 export const copyCodeToClipboard = async (
   code: string,
-  button: HTMLElement
+  button: HTMLElement,
+  root: Root
 ) => {
   try {
     await navigator.clipboard.writeText(code);
-    button.textContent = "Đã sao chép";
+    root.render(React.createElement(React.Fragment, null, 
+      React.createElement(Check, { size: 16 }), 
+      " Đã sao chép"
+    ));
     setTimeout(() => {
-      button.textContent = "Sao chép";
+      root.render(React.createElement(React.Fragment, null,
+        React.createElement(Copy, { size: 16 }),
+        " Sao chép"
+      ));
     }, 2000);
   } catch (err) {
     console.error("Failed to copy: ", err);
@@ -42,12 +52,18 @@ export const addCopyButtonsToCodeBlocks = (container: HTMLElement) => {
 
       const copyButton = document.createElement("button");
       copyButton.className = "copy-button";
-      copyButton.textContent = "Sao chép";
       copyButton.title = "Sao chép code";
+
+      // Create React root for the button content
+      const root = createRoot(copyButton);
+      root.render(React.createElement(React.Fragment, null,
+        React.createElement(Copy, { size: 16 }),
+        " Sao chép"
+      ));
 
       copyButton.addEventListener("click", () => {
         const codeText = (block as HTMLElement).textContent || "";
-        copyCodeToClipboard(codeText, copyButton);
+        copyCodeToClipboard(codeText, copyButton, root);
       });
 
       codeHeader.appendChild(languageLabel);
