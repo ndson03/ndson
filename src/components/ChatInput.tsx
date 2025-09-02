@@ -11,6 +11,8 @@ interface ChatInputProps {
   isApiKeyReady: boolean;
   isLoading: boolean;
   placeholder: string;
+  isWelcome: boolean;
+  setInputRef?: (ref: HTMLTextAreaElement | null) => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -23,8 +25,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   isApiKeyReady,
   isLoading,
   placeholder,
+  isWelcome,
+  setInputRef,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Callback ref để pass textarea element lên parent
+  const textareaCallbackRef = useCallback((node: HTMLTextAreaElement | null) => {
+    textareaRef.current = node;
+    if (setInputRef) {
+      setInputRef(node);
+    }
+  }, [setInputRef]);
 
   const autoResize = useCallback(() => {
     if (!textareaRef.current) return;
@@ -87,9 +99,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     <div
       className="chat-input-container"
       onClick={handleChatInputContainerClick}
+      style={{
+        bottom: isWelcome ? "auto" : "0px",
+      }}
     >
       <textarea
-        ref={textareaRef}
+        ref={textareaCallbackRef}
         value={input}
         onChange={handleInputChange}
         onKeyDown={onKeyDown}

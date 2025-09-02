@@ -33,7 +33,8 @@ function ChatPage() {
   const [deleteButtonElement, setDeleteButtonElement] =
     useState<HTMLElement | null>(null);
   const [storageService] = useState(() => new StorageService());
-  const [welcome, setWelcome] = useState(false);
+  const [isWelcome, setIsWelcome] = useState(false);
+  const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
 
   const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
   const { containerRef, scrollToBottom } = useScrollToBottom();
@@ -49,12 +50,12 @@ function ChatPage() {
           setMessages(loadedMessages);
         } else {
           setMessages([]);
-          setWelcome(true);
+          setIsWelcome(true);
         }
       } catch (error) {
         console.error("Failed to initialize app:", error);
         setMessages([]);
-        setWelcome(true);
+        setIsWelcome(true);
       }
     };
 
@@ -100,7 +101,7 @@ function ChatPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setWelcome(false);
+    setIsWelcome(false);
 
     await storageService.saveMessage(true, question);
 
@@ -155,8 +156,15 @@ function ChatPage() {
     try {
       await storageService.clearMessages();
       setMessages([]);
-      setWelcome(true);
+      setIsWelcome(true);
       setShowDeletePopup(false);
+      
+      // Focus vào input sau khi clear history
+      setTimeout(() => {
+        if (inputRef && isApiKeyReady) {
+          inputRef.focus();
+        }
+      }, 100);
     } catch (error) {
       alert(MESSAGES.DELETE_ERROR);
       setShowDeletePopup(false);
@@ -182,7 +190,7 @@ function ChatPage() {
 
   return (
     <div className="main-content">
-      {welcome && <WelcomeMessage />}
+      {isWelcome && <WelcomeMessage />}
       <ApiKeyForm
         onApiKeySet={setApiKey}
         isOpen={showApiKeyModal}
@@ -220,6 +228,8 @@ function ChatPage() {
             isApiKeyReady={isApiKeyReady}
             isLoading={isLoading}
             placeholder={placeholderText}
+            isWelcome={isWelcome}
+            setInputRef={setInputRef}
           />
         </div>
       </div>
