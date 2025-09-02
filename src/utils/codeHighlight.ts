@@ -1,5 +1,4 @@
 import hljs from "highlight.js";
-import toast from "react-hot-toast";
 
 export const copyCodeToClipboard = async (
   code: string,
@@ -8,7 +7,6 @@ export const copyCodeToClipboard = async (
   try {
     await navigator.clipboard.writeText(code);
     button.textContent = "Đã sao chép";
-    toast.success("Đã sao chép");
     setTimeout(() => {
       button.textContent = "Sao chép";
     }, 2000);

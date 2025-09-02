@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import toast from "react-hot-toast";
 import ApiKeyForm from "../components/ApiKeyForm";
 import { StorageService } from "../services/storageService";
 import { ApiService } from "../services/apiService";
@@ -158,7 +157,6 @@ function ChatPage() {
       setMessages([]);
       setWelcome(true);
       setShowDeletePopup(false);
-      toast.success(MESSAGES.DELETE_SUCCESS);
     } catch (error) {
       alert(MESSAGES.DELETE_ERROR);
       setShowDeletePopup(false);
