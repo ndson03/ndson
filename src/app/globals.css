@@ -163,7 +163,6 @@ body {
   background-color: #d4d4d4; /* Khi bấm giữ */
 }
 
-
 /* === Messages === */
 .bot-message {
   max-width: 100%;
@@ -284,6 +283,43 @@ th {
   padding: 0;
 }
 
+.markdown-content h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 1.5rem 0 1rem;
+}
+
+.markdown-content h2 {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.markdown-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+
+.markdown-content h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.markdown-content h5 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.markdown-content h6 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0.5rem 0 0.25rem;
+  color: #555;
+}
+
 .markdown-content ul {
   list-style-type: disc !important;
   margin-left: 20px !important;
@@ -330,8 +366,12 @@ th {
 }
 
 .markdown-content a {
-  color: blue;
+  color: #2964aa;
   text-decoration: underline;
+  text-decoration-skip-ink: auto;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  text-underline-position: from-font;
 }
 
 /* Wrapper cho code block */
