@@ -74,9 +74,9 @@ function ChatPage() {
 
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage.isUser) {
-        if (containerRef.current) {
-          highlightCodeBlocks(containerRef.current);
-        }
+      if (containerRef.current) {
+        highlightCodeBlocks(containerRef.current);
+      }
     }
   }, [messages]);
 
@@ -117,6 +117,7 @@ function ChatPage() {
         question,
         chatHistory,
         apiKey,
+        model: localStorage.getItem("selected-model") || "gemini-2.5-flash",
       });
 
       setMessages((prev) => {

@@ -5,6 +5,7 @@ interface RequestBody {
   question: string;
   chatHistory: Array<{ role: string; parts: Array<{ text: string }> }>;
   apiKey: string;
+  model: string;
 }
 
 // Định nghĩa interface cho Gemini API response
@@ -45,7 +46,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       });
     }
 
-    const { question, chatHistory, apiKey } = body;
+    const { question, chatHistory, apiKey, model } = body;
 
     if (!question || typeof question !== "string") {
       return new NextResponse("Question is required and must be a string", {
@@ -77,8 +78,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     };
 
     // Gemini API configuration
-    const geminiApiUrl =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
     // Call Gemini API
     let geminiResponse: Response;

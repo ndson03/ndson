@@ -14,4 +14,5 @@ export interface ApiPayload {
   question: string;
   chatHistory: ApiMessage[];
   apiKey: string;
+  model: string;
 }

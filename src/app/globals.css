@@ -116,7 +116,7 @@ body {
   width: 100%;
 }
 
-.right-buttons {
+.left-buttons, .right-buttons {
   display: flex;
   gap: 8px;
 }
