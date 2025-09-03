@@ -15,10 +15,10 @@ export class ApiService {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`${await response.text()}`);
       }
 
-      return await response.json();
+      return await response.text();
     } catch (error: any) {
       throw error;
     }

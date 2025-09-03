@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 interface RequestBody {
   question: string;
   chatHistory: Array<{ role: string; parts: Array<{ text: string }> }>;
-  apiKey: string; // Thêm apiKey vào interface
+  apiKey: string;
 }
 
 // Định nghĩa interface cho Gemini API response
@@ -28,7 +28,7 @@ const corsHeaders: Record<string, string> = {
 // Handle OPTIONS request for CORS preflight
 export async function OPTIONS(): Promise<NextResponse> {
   return new NextResponse(null, {
-    status: 200,
+    status: 204, // 204 No Content cho OPTIONS
     headers: corsHeaders,
   });
 }
@@ -39,33 +39,25 @@ export async function POST(request: Request): Promise<NextResponse> {
     try {
       body = await request.json();
     } catch (parseError) {
-      return NextResponse.json("Invalid JSON in request body", {
-        status: 200,
-        headers: corsHeaders,
+      return new NextResponse("Invalid JSON in request body", {
+        status: 400, // Bad Request
+        headers: { ...corsHeaders, "Content-Type": "text/plain" },
       });
     }
 
     const { question, chatHistory, apiKey } = body;
 
     if (!question || typeof question !== "string") {
-      return NextResponse.json("Question is required and must be a string", {
-        status: 200,
-        headers: corsHeaders,
+      return new NextResponse("Question is required and must be a string", {
+        status: 400, // Bad Request
+        headers: { ...corsHeaders, "Content-Type": "text/plain" },
       });
     }
 
-    if (!Array.isArray(chatHistory)) {
-      return NextResponse.json("chatHistory must be an array", {
-        status: 200,
-        headers: corsHeaders,
-      });
-    }
-
-    // Kiểm tra API key
     if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
-      return NextResponse.json("API key is required", {
-        status: 200,
-        headers: corsHeaders,
+      return new NextResponse("API key is required", {
+        status: 400, // Bad Request
+        headers: { ...corsHeaders, "Content-Type": "text/plain" },
       });
     }
 
@@ -86,9 +78,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     // Gemini API configuration
     const geminiApiUrl =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-    // Call Gemini API với API key từ request
+    // Call Gemini API
     let geminiResponse: Response;
     try {
       geminiResponse = await fetch(`${geminiApiUrl}?key=${trimmedApiKey}`, {
@@ -103,9 +95,9 @@ export async function POST(request: Request): Promise<NextResponse> {
         cache: "no-cache" as RequestInit["cache"],
       });
     } catch (fetchError) {
-      return NextResponse.json("Failed to connect to Gemini API", {
-        status: 200,
-        headers: corsHeaders,
+      return new NextResponse("Failed to connect to Gemini API", {
+        status: 500, // Internal Server Error
+        headers: { ...corsHeaders, "Content-Type": "text/plain" },
       });
     }
 
@@ -114,19 +106,18 @@ export async function POST(request: Request): Promise<NextResponse> {
       let errorDetails: string;
       try {
         const errorData = await geminiResponse.json();
-        // Xử lý các loại lỗi phổ biến
         if (geminiResponse.status === 400) {
-          return NextResponse.json("Invalid API key or request format", {
-            status: 200,
-            headers: corsHeaders,
+          return new NextResponse("Invalid API key or request format", {
+            status: 400, // Bad Request
+            headers: { ...corsHeaders, "Content-Type": "text/plain" },
           });
         }
-        if (geminiResponse.status === 403) {
-          return NextResponse.json(
-            "API key không có quyền truy cập hoặc đã hết quota",
+        if (geminiResponse.status === 429) {
+          return new NextResponse(
+            "API key does not have access or has exceeded quota",
             {
-              status: 200,
-              headers: corsHeaders,
+              status: 403, // Forbidden
+              headers: { ...corsHeaders, "Content-Type": "text/plain" },
             }
           );
         }
@@ -135,11 +126,11 @@ export async function POST(request: Request): Promise<NextResponse> {
         errorDetails = geminiResponse.statusText;
       }
 
-      return NextResponse.json(
+      return new NextResponse(
         `Gemini API error (${geminiResponse.status}): ${errorDetails}`,
         {
-          status: 200,
-          headers: corsHeaders,
+          status: geminiResponse.status, // Sử dụng status từ Gemini API
+          headers: { ...corsHeaders, "Content-Type": "text/plain" },
         }
       );
     }
@@ -149,9 +140,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     try {
       geminiData = await geminiResponse.json();
     } catch (parseError) {
-      return NextResponse.json("Invalid response from Gemini API", {
-        status: 200,
-        headers: corsHeaders,
+      return new NextResponse("Invalid response from Gemini API", {
+        status: 500, // Internal Server Error
+        headers: { ...corsHeaders, "Content-Type": "text/plain" },
       });
     }
 
@@ -179,35 +170,28 @@ export async function POST(request: Request): Promise<NextResponse> {
         throw new Error("Empty text in Gemini response");
       }
     } catch (extractError) {
-      return NextResponse.json("Failed to extract response from Gemini API", {
-        status: 200,
-        headers: corsHeaders,
+      return new NextResponse("Failed to extract response from Gemini API", {
+        status: 500, // Internal Server Error
+        headers: { ...corsHeaders, "Content-Type": "text/plain" },
       });
     }
 
-    // Return response text directly
-    return NextResponse.json(responseText, {
-      status: 200,
-      headers: corsHeaders,
+    // Return plain text response
+    return new NextResponse(responseText, {
+      status: 200, // OK
+      headers: { ...corsHeaders, "Content-Type": "text/plain" },
     });
   } catch (error) {
-    return NextResponse.json("Internal server error", {
-      status: 200,
-      headers: corsHeaders,
+    return new NextResponse("Internal server error", {
+      status: 500, // Internal Server Error
+      headers: { ...corsHeaders, "Content-Type": "text/plain" },
     });
   }
 }
 
 export async function GET(): Promise<NextResponse> {
-  return NextResponse.json(
-    {
-      status: "OK",
-      timestamp: new Date().toISOString(),
-      message: "Chat API is running",
-    },
-    {
-      status: 200,
-      headers: corsHeaders,
-    }
-  );
+  return new NextResponse("Chat API is running", {
+    status: 200, // OK
+    headers: { ...corsHeaders, "Content-Type": "text/plain" },
+  });
 }

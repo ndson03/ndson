@@ -15,6 +15,7 @@ import { DeletePopup } from "./DeletePopup";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import WelcomeMessage from "./WelcomeMessage";
+import toast from "react-hot-toast";
 
 export default function ChatPageWrapper() {
   return (
@@ -103,8 +104,6 @@ function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
     setIsWelcome(false);
 
-    await storageService.saveMessage(true, question);
-
     // Add loading message
     const loadingMessage: Message = {
       isUser: false,
@@ -133,20 +132,19 @@ function ChatPage() {
         return newMessages;
       });
 
+      await storageService.saveMessage(true, question);
       await storageService.saveMessage(false, response);
     } catch (error) {
       const errorMessage = handleApiError(error);
 
-      setMessages((prev) => {
-        const newMessages = [...prev];
-        newMessages[newMessages.length - 1] = {
-          ...newMessages[newMessages.length - 1],
-          content: errorMessage,
-        };
-        return newMessages;
-      });
+      setInput(question);
+      setMessages((prev) => [...prev].slice(0, -2));
 
-      await storageService.saveMessage(false, errorMessage);
+      if (messages.length == 0) {
+        setIsWelcome(true);
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -158,7 +156,7 @@ function ChatPage() {
       setMessages([]);
       setIsWelcome(true);
       setShowDeletePopup(false);
-      
+
       // Focus vào input sau khi clear history
       setTimeout(() => {
         if (inputRef && isApiKeyReady) {

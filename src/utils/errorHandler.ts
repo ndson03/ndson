@@ -14,7 +14,7 @@ export const handleApiError = (error: unknown): string => {
     if (error.name === "AbortError") {
       return "Yêu cầu đã bị hủy do timeout";
     }
-    return `Có lỗi xảy ra: ${error.message}`;
+    return `${error.message}`;
   }
 
   return "Có lỗi không xác định xảy ra";

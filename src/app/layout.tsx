@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="vi">
       <body>
         {children}
-        <Toaster position="top-right" />
+        <Toaster position="top-center" />
       </body>
     </html>
   );
