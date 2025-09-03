@@ -73,14 +73,10 @@ function ChatPage() {
     if (!containerRef.current || messages.length === 0) return;
 
     const lastMessage = messages[messages.length - 1];
-    if (!lastMessage.isUser && lastMessage.content !== MESSAGES.TYPING) {
-      const timeoutId = setTimeout(() => {
+    if (!lastMessage.isUser) {
         if (containerRef.current) {
           highlightCodeBlocks(containerRef.current);
         }
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
     }
   }, [messages]);
 
