@@ -104,7 +104,7 @@ body {
   padding: 4px 8px 8px 8px;
   box-sizing: border-box;
   box-shadow: var(--card-shadow);
-  max-height: 450px;
+  max-height: 350px;
   overflow-y: auto;
   cursor: text;
 }
