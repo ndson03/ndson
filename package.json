@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "grapesjs": "^0.22.13",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.26.0",
     "lucide-react": "^0.539.0",
