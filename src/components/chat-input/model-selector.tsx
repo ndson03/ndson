@@ -130,7 +130,7 @@ export const ModelSelector = () => {
       <button
         ref={modelButtonRef}
         onClick={handleModelButtonClick}
-        className="cursor-pointer flex items-center justify-between px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none transition-colors"
+        className="cursor-pointer flex items-center justify-between px-2 py-2 text-sm border border-gray-300 rounded-xl bg-white hover:bg-gray-50 focus:outline-none transition-colors"
         title="Chọn model"
       >
         <span className="font-medium text-gray-900 text-xs">

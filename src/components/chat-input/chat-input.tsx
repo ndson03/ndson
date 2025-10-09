@@ -110,7 +110,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <>
       <div
-        className="chat-input-container"
+        className="flex flex-col items-stretch fixed w-[800px] max-w-[800px] z-10 border border-black/15 rounded-4xl bg-white p-1 pl-2 pr-2 pb-2 max-h-[350px] overflow-y-auto cursor-text shadow-[var(--card-shadow)]"
         onClick={handleChatInputContainerClick}
         style={{
           bottom: isWelcome ? "auto" : "0px",
@@ -123,36 +123,38 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           disabled={!isApiKeyReady}
-          className={`questionInput ${!isApiKeyReady ? "disabled" : ""}`}
+          className={`flex-1 border-none p-1.5 pl-2 pr-2 resize-none w-full transition-all duration-200 ease-in-out focus:outline-none ${
+            !isApiKeyReady ? "disabled" : ""
+          }`}
           rows={1}
         />
-        <div className="button-container">
-          <div className="left-buttons">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-1">
             <div
-              className="apikey-config-button"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 mr-2"
               onClick={onApiKeyConfig}
               title="Cấu hình API Key"
             >
-              <Key size={16} />
+              <Key size={16} className="w-4 h-4" />
             </div>
             <ModelSelector />
           </div>
-          <div className="right-buttons">
+          <div className="flex items-center gap-1">
             <div
-              className={`send-button ${
-                isSendButtonDisabled ? "disabled" : ""
+              className={`inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 ${
+                isSendButtonDisabled ? "opacity-50 cursor-not-allowed" : ""
               }`}
               onClick={onSendMessage}
               title={sendButtonTitle}
             >
-              <ArrowUp size={16} />
+              <ArrowUp size={16} className="w-4 h-4" />
             </div>
             <div
-              className="clear-button"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300"
               onClick={onDeleteHistory}
               title="Xóa lịch sử chat"
             >
-              <Trash2 size={16} />
+              <Trash2 size={16} className="w-4 h-4" />
             </div>
           </div>
         </div>
