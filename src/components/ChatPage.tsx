@@ -131,7 +131,7 @@ function ChatPage() {
 
       await storageService.saveMessage(true, question);
       await storageService.saveMessage(false, response);
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = handleApiError(error);
 
       setInput(question);
