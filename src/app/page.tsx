@@ -1,5 +1,225 @@
-import ChatPageWrapper from "../components/ChatPage";
+"use client";
 
-export default function Home() {
-  return <ChatPageWrapper />;
+import React, { useState, useEffect, useMemo } from "react";
+import { StorageService } from "../services/storage-service";
+import { ApiService } from "../services/api-service";
+import { useApiKey } from "../hooks/use-api-key";
+import { useScrollToBottom } from "../hooks/use-scroll-to-bottom";
+import { highlightCodeBlocks } from "../utils/code-highlight";
+import { handleApiError } from "../utils/error-handler";
+import { MESSAGES } from "../constants";
+import { Message } from "../types";
+
+import toast from "react-hot-toast";
+import { ChatMessage } from "../components/message/chat-message";
+import WelcomeMessage from "../components/message/welcom-message";
+import ApiKeyForm from "../components/api-key-form/api-key-form";
+import { DeletePopup } from "../components/chat-input/delete-chat-history-popup";
+import { ChatInput } from "../components/chat-input/chat-input";
+
+export default function ChatPage() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [deleteButtonElement, setDeleteButtonElement] =
+    useState<HTMLElement | null>(null);
+  const [storageService] = useState(() => new StorageService());
+  const [isWelcome, setIsWelcome] = useState(false);
+  const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
+
+  const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
+  const { containerRef, scrollToBottom } = useScrollToBottom();
+
+  // Initialize storage and load messages
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        await storageService.initialize();
+        const loadedMessages = await storageService.loadMessages();
+
+        if (loadedMessages.length > 0) {
+          setMessages(loadedMessages);
+        } else {
+          setMessages([]);
+          setIsWelcome(true);
+        }
+      } catch (error) {
+        console.error("Failed to initialize app:", error);
+        setMessages([]);
+        setIsWelcome(true);
+      }
+    };
+
+    initializeApp();
+  }, [storageService]);
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages.length, scrollToBottom]);
+
+  // Highlight code blocks for bot messages
+  useEffect(() => {
+    if (!containerRef.current || messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage.isUser) {
+      if (containerRef.current) {
+        highlightCodeBlocks(containerRef.current);
+      }
+    }
+  }, [messages]);
+
+  // Event handlers
+  const handleSendMessage = async () => {
+    if (!isApiKeyReady || !apiKey.trim()) {
+      alert(MESSAGES.API_KEY_REQUIRED);
+      return;
+    }
+
+    const question = input.trim();
+    if (!question || isLoading) return;
+
+    // Add user message
+    const userMessage: Message = {
+      isUser: true,
+      content: question,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsWelcome(false);
+
+    // Add loading message
+    const loadingMessage: Message = {
+      isUser: false,
+      content: MESSAGES.TYPING,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, loadingMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const chatHistory = await storageService.buildApiHistory();
+      const response = await ApiService.sendMessage({
+        question,
+        chatHistory,
+        apiKey,
+        model: localStorage.getItem("selected-model") || "gemini-2.5-flash",
+      });
+
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        newMessages[newMessages.length - 1] = {
+          ...newMessages[newMessages.length - 1],
+          content: response,
+        };
+        return newMessages;
+      });
+
+      await storageService.saveMessage(true, question);
+      await storageService.saveMessage(false, response);
+    } catch (error: any) {
+      const errorMessage = handleApiError(error);
+
+      setInput(question);
+      setMessages((prev) => [...prev].slice(0, -2));
+
+      if (messages.length == 0) {
+        setIsWelcome(true);
+      }
+
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    try {
+      await storageService.clearMessages();
+      setMessages([]);
+      setIsWelcome(true);
+      setShowDeletePopup(false);
+
+      // Focus vào input sau khi clear history
+      setTimeout(() => {
+        if (inputRef && isApiKeyReady) {
+          inputRef.focus();
+        }
+      }, 100);
+    } catch (error) {
+      alert(MESSAGES.DELETE_ERROR);
+      setShowDeletePopup(false);
+    }
+  };
+
+  // Memoized values
+  const placeholderText = useMemo(() => {
+    return isApiKeyReady
+      ? "Hỏi bất kỳ điều gì"
+      : "Vui lòng cấu hình API key để bắt đầu chat";
+  }, [isApiKeyReady]);
+
+  const renderedMessages = useMemo(() => {
+    return messages.map((message, index) => (
+      <ChatMessage
+        key={`${index}-${message.timestamp}`}
+        message={message}
+        index={index}
+      />
+    ));
+  }, [messages]);
+
+  return (
+    <div className="main-content">
+      {isWelcome && <WelcomeMessage />}
+      <ApiKeyForm
+        onApiKeySet={setApiKey}
+        isOpen={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+      />
+
+      <DeletePopup
+        isOpen={showDeletePopup}
+        onConfirm={handleClearHistory}
+        onCancel={() => setShowDeletePopup(false)}
+        targetElement={deleteButtonElement}
+      />
+
+      <div className="container-fluid">
+        <div className="chat-container">
+          <div className="chat-box" ref={containerRef}>
+            {renderedMessages}
+          </div>
+
+          <ChatInput
+            input={input}
+            onInputChange={setInput}
+            onSendMessage={handleSendMessage}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            onApiKeyConfig={() => setShowApiKeyModal(true)}
+            onDeleteHistory={(e) => {
+              setDeleteButtonElement(e.currentTarget as HTMLElement);
+              setShowDeletePopup(true);
+            }}
+            isApiKeyReady={isApiKeyReady}
+            isLoading={isLoading}
+            placeholder={placeholderText}
+            isWelcome={isWelcome}
+            setInputRef={setInputRef}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }

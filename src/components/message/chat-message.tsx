@@ -1,7 +1,7 @@
 import React from "react";
-import { Message } from "../types";
-import { UserMessage } from "./UserMessage";
-import { BotMessage } from "./BotMessage";
+import { Message } from "../../types";
+import { UserMessage } from "./user-message";
+import { BotMessage } from "./bot-message";
 
 interface ChatMessageProps {
   message: Message;

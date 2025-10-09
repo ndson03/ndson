@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Message } from "../types";
-import { useIndexedDB } from "./useIndexedDB";
+import { useIndexedDB } from "./use-indexed-db";
 
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
