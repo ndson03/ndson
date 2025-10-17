@@ -6,7 +6,7 @@ export const DB_CONFIG = {
 } as const;
 
 export const API_CONFIG = {
-  ENDPOINT: "/api",
+  ENDPOINT: "/api/chat",
 } as const;
 
 export const UI_CONFIG = {

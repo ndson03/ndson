@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@prisma/client": "^6.17.1",
     "grapesjs": "^0.22.13",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.26.0",
@@ -16,6 +17,7 @@
     "markdown-it": "^14.1.0",
     "marked": "^16.1.2",
     "next": "15.4.6",
+    "prisma": "^6.17.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.5.2"
