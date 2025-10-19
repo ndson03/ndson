@@ -1,116 +1,108 @@
 import { useState, useCallback } from "react";
 import { Message } from "../types";
-import { useIndexedDB } from "./use-indexed-db";
+import { ChatApi } from "../services/chat-api";
 
-export const useChat = () => {
+interface UseChatParams {
+  buildChatHistoryForAPI: () => Promise<any[]>;
+  saveMessageToHistory: (isUser: boolean, content: string) => Promise<void>;
+  apiKey: string;
+  selectedModel?: string;
+}
+
+export const useChat = ({
+  buildChatHistoryForAPI,
+  saveMessageToHistory,
+  apiKey,
+  selectedModel,
+}: UseChatParams) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { saveMessageToHistory, buildChatHistoryForAPI } = useIndexedDB();
 
-  const displayUserMessage = useCallback(
-    (text: string) => {
-      const newMessage: Message = {
-        isUser: true,
-        content: text,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, newMessage]);
-      saveMessageToHistory(true, text);
-    },
-    [saveMessageToHistory]
-  );
-
-  const addBotMessage = useCallback(
-    (content: string) => {
-      const botMessage: Message = {
-        isUser: false,
-        content,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-      saveMessageToHistory(false, content);
-    },
-    [saveMessageToHistory]
-  );
+  const addMessage = useCallback((message: Message) => {
+    setMessages((prev) => [...prev, message]);
+  }, []);
 
   const updateLastMessage = useCallback((content: string) => {
     setMessages((prev) => {
+      if (prev.length === 0) return prev;
       const newMessages = [...prev];
-      if (newMessages.length > 0) {
-        newMessages[newMessages.length - 1] = {
-          ...newMessages[newMessages.length - 1],
-          content,
-        };
-      }
+      newMessages[newMessages.length - 1] = {
+        ...newMessages[newMessages.length - 1],
+        content,
+      };
       return newMessages;
     });
   }, []);
 
-  const askQuestion = useCallback(
-    async (question: string, apiKey: string) => {
+  const removeLastMessages = useCallback((count: number) => {
+    setMessages((prev) => prev.slice(0, -count));
+  }, []);
+
+  const createMessage = (isUser: boolean, content: string): Message => ({
+    isUser,
+    content,
+    timestamp: new Date().toISOString(),
+  });
+
+  const sendMessage = useCallback(
+    async (question: string) => {
       if (!question.trim() || isLoading) return;
 
-      displayUserMessage(question);
+      const userMessage = createMessage(true, question);
+      const loadingMessage = createMessage(false, "typing...");
 
-      const loadingMessage: Message = {
-        isUser: false,
-        content: "typing...",
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, loadingMessage]);
+      addMessage(userMessage);
+      addMessage(loadingMessage);
       setIsLoading(true);
 
       try {
         const chatHistory = await buildChatHistoryForAPI();
-        const payload = { question, chatHistory, apiKey };
+        const model =
+          selectedModel ||
+          localStorage.getItem("selected-model") ||
+          "gemini-2.5-flash";
 
-        const response = await fetch("https://ndson.vercel.app/api", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify(payload),
+        const response = await ChatApi.sendMessage({
+          question,
+          chatHistory,
+          apiKey,
+          model,
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        updateLastMessage(response);
 
-        const responseText = await response.json();
-        updateLastMessage(responseText);
-        saveMessageToHistory(false, responseText);
+        await saveMessageToHistory(true, question);
+        await saveMessageToHistory(false, response);
+
+        return response;
       } catch (error) {
-        const errorMessage = `Có lỗi xảy ra: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`;
-        updateLastMessage(errorMessage);
-        saveMessageToHistory(false, errorMessage);
+        removeLastMessages(2);
+        throw error;
       } finally {
         setIsLoading(false);
       }
     },
     [
       isLoading,
-      displayUserMessage,
+      apiKey,
+      selectedModel,
       buildChatHistoryForAPI,
-      updateLastMessage,
       saveMessageToHistory,
+      addMessage,
+      updateLastMessage,
+      removeLastMessages,
     ]
   );
 
-  const resetMessages = useCallback(() => {
+  const clearMessages = useCallback(() => {
     setMessages([]);
   }, []);
 
   return {
     messages,
-    setMessages,
     isLoading,
-    askQuestion,
-    resetMessages,
+    sendMessage,
+    clearMessages,
+    setMessages,
   };
 };

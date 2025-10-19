@@ -9,34 +9,33 @@ export class StorageService {
       const request = indexedDB.open(DB_CONFIG.NAME, DB_CONFIG.VERSION);
 
       request.onerror = () => reject(request.error);
-
       request.onsuccess = () => {
         this.db = request.result;
         resolve();
       };
 
       request.onupgradeneeded = (event) => {
-        const database = (event.target as IDBOpenDBRequest).result;
-
-        if (!database.objectStoreNames.contains(DB_CONFIG.STORE_NAME)) {
-          const store = database.createObjectStore(DB_CONFIG.STORE_NAME, {
-            keyPath: "id",
-            autoIncrement: true,
-          });
-          store.createIndex("timestamp", "timestamp", { unique: false });
-        }
+        const db = (event.target as IDBOpenDBRequest).result;
+        this.createObjectStore(db);
       };
     });
   }
 
+  private createObjectStore(db: IDBDatabase): void {
+    if (!db.objectStoreNames.contains(DB_CONFIG.STORE_NAME)) {
+      const store = db.createObjectStore(DB_CONFIG.STORE_NAME, {
+        keyPath: "id",
+        autoIncrement: true,
+      });
+      store.createIndex("timestamp", "timestamp", { unique: false });
+    }
+  }
+
   async saveMessage(isUser: boolean, content: string): Promise<void> {
-    if (!this.db) throw new Error("Database not initialized");
+    this.ensureDBInitialized();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(
-        [DB_CONFIG.STORE_NAME],
-        "readwrite"
-      );
+      const transaction = this.createTransaction("readwrite");
       const store = transaction.objectStore(DB_CONFIG.STORE_NAME);
 
       const message: Message = {
@@ -51,19 +50,15 @@ export class StorageService {
         this.cleanupOldMessages();
         resolve();
       };
-
       request.onerror = () => reject(request.error);
     });
   }
 
   async loadMessages(): Promise<Message[]> {
-    if (!this.db) throw new Error("Database not initialized");
+    this.ensureDBInitialized();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(
-        [DB_CONFIG.STORE_NAME],
-        "readonly"
-      );
+      const transaction = this.createTransaction("readonly");
       const store = transaction.objectStore(DB_CONFIG.STORE_NAME);
       const index = store.index("timestamp");
       const request = index.openCursor(null, "next");
@@ -79,35 +74,20 @@ export class StorageService {
           resolve(messages);
         }
       };
-
       request.onerror = () => reject(request.error);
     });
   }
 
   async buildApiHistory(): Promise<ApiMessage[]> {
     const messages = await this.loadMessages();
-
-    return messages.map((message) => {
-      let textContent: any = message.content;
-      if (typeof textContent === "object" && textContent?.text) {
-        textContent = textContent.text;
-      }
-
-      return {
-        role: message.isUser ? ("user" as const) : ("model" as const),
-        parts: [{ text: textContent }],
-      };
-    });
+    return messages.map(this.convertToApiMessage);
   }
 
   async clearMessages(): Promise<void> {
-    if (!this.db) throw new Error("Database not initialized");
+    this.ensureDBInitialized();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(
-        [DB_CONFIG.STORE_NAME],
-        "readwrite"
-      );
+      const transaction = this.createTransaction("readwrite");
       const store = transaction.objectStore(DB_CONFIG.STORE_NAME);
       const request = store.clear();
 
@@ -116,17 +96,37 @@ export class StorageService {
     });
   }
 
+  private ensureDBInitialized(): void {
+    if (!this.db) {
+      throw new Error("Database not initialized");
+    }
+  }
+
+  private createTransaction(mode: IDBTransactionMode): IDBTransaction {
+    return this.db!.transaction([DB_CONFIG.STORE_NAME], mode);
+  }
+
+  private convertToApiMessage(message: Message): ApiMessage {
+    let textContent: string = message.content as string;
+
+    if (typeof message.content === "object" && (message.content as any)?.text) {
+      textContent = (message.content as any).text;
+    }
+
+    return {
+      role: message.isUser ? "user" : "model",
+      parts: [{ text: textContent }],
+    };
+  }
+
   private cleanupOldMessages(): void {
     if (!this.db) return;
 
-    const transaction = this.db.transaction(
-      [DB_CONFIG.STORE_NAME],
-      "readwrite"
-    );
+    const transaction = this.createTransaction("readwrite");
     const store = transaction.objectStore(DB_CONFIG.STORE_NAME);
     const index = store.index("timestamp");
-
     const request = index.openCursor(null, "prev");
+
     let count = 0;
 
     request.onsuccess = (event) => {
