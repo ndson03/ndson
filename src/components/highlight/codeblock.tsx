@@ -26,11 +26,13 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   };
 
   return (
-    <div className="code-block-wrapper">
-      <div className="code-header">
-        <span className="language-label">{language}</span>
+    <div className="relative my-4 rounded-2xl overflow-hidden">
+      <div className="flex justify-between items-center px-4 py-2 bg-[#f9f9f9] text-[#586069] text-sm">
+        <span className="font-semibold uppercase text-sm tracking-wide">
+          {language}
+        </span>
         <button
-          className="copy-button"
+          className="border-none cursor-pointer transition-transform duration-200 ease-in-out flex items-center gap-1 active:scale-95"
           onClick={handleCopy}
           title="Sao chép code"
         >

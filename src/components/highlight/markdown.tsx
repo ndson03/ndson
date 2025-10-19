@@ -18,16 +18,17 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
             const codeContent = String(children).replace(/\n$/, "");
             const isBlock = codeContent.includes('\n') || match;
             
-            // Inline code
             if (!isBlock) {
               return (
-                <code className={className} {...props}>
+                <code 
+                  className="bg-[#ececec] font-medium px-1.5 py-0.5 rounded"
+                  {...props}
+                >
                   {children}
                 </code>
               );
             }
             
-            // Code block
             return (
               <CodeBlock 
                 code={codeContent} 
@@ -37,68 +38,82 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
           },
           
           pre({ children }) {
-            // Bỏ qua pre wrapper vì CodeBlock đã xử lý
             return <>{children}</>;
           },
           
           p({ children }) {
-            return <p>{children}</p>;
+            return <p className="my-2">{children}</p>;
           },
           
           a({ href, children }) {
             return (
-              <a href={href} target="_blank" rel="noopener noreferrer">
+              <a 
+                href={href} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[#2964aa] underline decoration-dotted underline-offset-2"
+              >
                 {children}
               </a>
             );
           },
           
           ul({ children }) {
-            return <ul>{children}</ul>;
+            return <ul className="list-disc ml-5 my-2.5">{children}</ul>;
           },
           
           ol({ children }) {
-            return <ol>{children}</ol>;
+            return <ol className="list-decimal ml-5 my-2.5">{children}</ol>;
           },
           
           li({ children }) {
-            return <li>{children}</li>;
+            return <li className="pl-1.5">{children}</li>;
           },
           
           h1({ children }) {
-            return <h1>{children}</h1>;
+            return <h1 className="text-[2rem] font-bold mt-6 mb-4">{children}</h1>;
           },
           
           h2({ children }) {
-            return <h2>{children}</h2>;
+            return <h2 className="text-[1.75rem] font-bold mt-5 mb-3">{children}</h2>;
           },
           
           h3({ children }) {
-            return <h3>{children}</h3>;
+            return <h3 className="text-2xl font-semibold mt-4 mb-2">{children}</h3>;
           },
           
           h4({ children }) {
-            return <h4>{children}</h4>;
+            return <h4 className="text-xl font-semibold mt-3 mb-2">{children}</h4>;
           },
           
           h5({ children }) {
-            return <h5>{children}</h5>;
+            return <h5 className="text-lg font-medium mt-2 mb-1">{children}</h5>;
           },
           
           h6({ children }) {
-            return <h6>{children}</h6>;
+            return <h6 className="text-base font-medium mt-2 mb-1 text-[#555]">{children}</h6>;
           },
           
           blockquote({ children }) {
-            return <blockquote>{children}</blockquote>;
+            return (
+              <blockquote className="border-l-4 border-gray-300 pl-4 my-4 italic text-gray-700">
+                {children}
+              </blockquote>
+            );
           },
           
           table({ children }) {
-            return <table>{children}</table>;
+            return (
+              <div className="overflow-x-auto my-4">
+                <table className="min-w-full border-collapse border border-gray-300">
+                  {children}
+                </table>
+              </div>
+            );
           },
           
           thead({ children }) {
-            return <thead>{children}</thead>;
+            return <thead className="bg-gray-100">{children}</thead>;
           },
           
           tbody({ children }) {
@@ -106,31 +121,37 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
           },
           
           tr({ children }) {
-            return <tr>{children}</tr>;
+            return <tr className="border-b border-gray-300">{children}</tr>;
           },
           
           td({ children }) {
-            return <td>{children}</td>;
+            return <td className="border border-gray-300 px-4 py-2">{children}</td>;
           },
           
           th({ children }) {
-            return <th>{children}</th>;
+            return <th className="border border-gray-300 px-4 py-2 font-semibold text-left">{children}</th>;
           },
           
           strong({ children }) {
-            return <strong>{children}</strong>;
+            return <strong className="font-semibold">{children}</strong>;
           },
           
           em({ children }) {
-            return <em>{children}</em>;
+            return <em className="italic">{children}</em>;
           },
           
           del({ children }) {
-            return <del>{children}</del>;
+            return <del className="line-through">{children}</del>;
           },
           
           img({ src, alt }) {
-            return <img src={src} alt={alt} />;
+            return (
+              <img 
+                src={src} 
+                alt={alt} 
+                className="max-w-full h-auto rounded-lg my-4"
+              />
+            );
           },
         }}
       >
