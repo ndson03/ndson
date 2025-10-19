@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import toast from "react-hot-toast";
 
 import { useApiKey } from "../hooks/use-api-key";
@@ -28,6 +34,8 @@ export default function ChatPage() {
     useState<HTMLElement | null>(null);
   const [isWelcome, setIsWelcome] = useState(false);
   const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
+
+  const isInitialLoad = useRef(true);
 
   const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
   const { selectedModelId, selectedModel, models, handleModelSelect } =
@@ -75,10 +83,14 @@ export default function ChatPage() {
 
   // Auto-scroll on new messages
   useEffect(() => {
-    scrollToBottom();
+    if (isInitialLoad.current && messages.length > 0) {
+      scrollToBottom(220);
+      isInitialLoad.current = false;
+    } else {
+      scrollToBottom();
+    }
   }, [messages.length, scrollToBottom]);
 
-  // Handle send message
   const handleSendMessage = useCallback(async () => {
     if (!isApiKeyReady || !apiKey.trim()) {
       alert(MESSAGES.API_KEY_REQUIRED);
@@ -114,6 +126,7 @@ export default function ChatPage() {
         clearMessages();
         setIsWelcome(true);
         setShowDeletePopup(false);
+        isInitialLoad.current = true;
 
         setTimeout(() => {
           if (inputRef && isApiKeyReady) {
@@ -168,11 +181,7 @@ export default function ChatPage() {
 
   return (
     <div
-      className={`pt-4 sm:pt-6 md:pt-8 ${
-        isWelcome
-          ? "pb-4 sm:pb-6 md:pb-8"
-          : "pb-[120px] sm:pb-[130px] md:pb-[140px]"
-      } transition-all duration-300 overflow-y-scroll h-[100vh] w-full px-2 sm:px-4`}
+      className={`pt-4 sm:pt-6 md:pt-8 pb-[300px] transition-all duration-300 overflow-y-scroll h-[100vh] w-full px-2 sm:px-4`}
       style={{ scrollbarGutter: "stable" }}
       ref={containerRef}
     >
@@ -221,7 +230,7 @@ export default function ChatPage() {
       />
 
       <ScrollToBottomButton
-        onClick={scrollToBottom}
+        onClick={() => scrollToBottom(220)}
         isVisible={showScrollButton}
       />
     </div>

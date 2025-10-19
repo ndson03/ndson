@@ -5,12 +5,12 @@ export const useScrollToBottom = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToBottom = useCallback((offset: number = 0) => {
     const container = containerRef.current;
     if (!container) return;
-
+    const maxScrollTop = container.scrollHeight - container.clientHeight;
     container.scrollTo({
-      top: container.scrollHeight,
+      top: maxScrollTop - offset,
       behavior: UI_CONFIG.SCROLL_BEHAVIOR,
     });
   }, []);
@@ -18,11 +18,9 @@ export const useScrollToBottom = () => {
   const checkScrollPosition = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-
     const { scrollTop, scrollHeight, clientHeight } = container;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-
-    setShowScrollButton(distanceFromBottom > 200);
+    setShowScrollButton(distanceFromBottom > 220);
   }, []);
 
   useEffect(() => {
@@ -32,8 +30,19 @@ export const useScrollToBottom = () => {
     container.addEventListener("scroll", checkScrollPosition);
     checkScrollPosition();
 
+    const observer = new MutationObserver(() => {
+      checkScrollPosition();
+    });
+
+    observer.observe(container, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
     return () => {
       container.removeEventListener("scroll", checkScrollPosition);
+      observer.disconnect();
     };
   }, [checkScrollPosition]);
 
