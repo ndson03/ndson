@@ -1,6 +1,7 @@
-import React, { useRef, useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Key, ArrowUp, Trash2 } from "lucide-react";
 import { ModelSelector } from "./model-selector";
+import { useAutoResize } from "@/src/hooks/use-auto-resize";
 
 interface ChatInputProps {
   input: string;
@@ -29,7 +30,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   isWelcome,
   setInputRef,
 }) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { textareaRef, autoResize } = useAutoResize();
 
   // Callback ref to pass textarea element up to parent
   const textareaCallbackRef = useCallback(
@@ -39,26 +40,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         setInputRef(node);
       }
     },
-    [setInputRef]
+    [setInputRef, textareaRef]
   );
-
-  const autoResize = useCallback(() => {
-    if (!textareaRef.current) return;
-
-    const textarea = textareaRef.current;
-    const parent = textarea.parentElement as HTMLElement;
-    if (!parent) return;
-
-    textarea.style.height = "auto";
-    parent.style.height = "auto";
-
-    const newHeight = Math.min(textarea.scrollHeight, 300);
-    textarea.style.height = `${newHeight}px`;
-
-    const parentPadding = parent.offsetHeight - textarea.offsetHeight;
-    const newParentHeight = newHeight + parentPadding;
-    parent.style.height = `${Math.min(newParentHeight, 350)}px`;
-  }, []);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -70,6 +53,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     [onInputChange, autoResize]
   );
 
+  const handleChatInputContainerClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as Element;
+      if (
+        !target.closest(".apikey-config-button") &&
+        !target.closest(".model-selector") &&
+        !target.closest(".send-button") &&
+        !target.closest(".clear-button")
+      ) {
+        textareaRef.current?.focus();
+      }
+    },
+    [textareaRef]
+  );
+
+  // Focus textarea when API key is ready
   useEffect(() => {
     if (isApiKeyReady && textareaRef.current) {
       const timer = setTimeout(() => {
@@ -78,29 +77,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       return () => clearTimeout(timer);
     }
-  }, [isApiKeyReady]);
+  }, [isApiKeyReady, textareaRef]);
 
+  // Initial focus when component mounts
   useEffect(() => {
     if (textareaRef.current && isApiKeyReady) {
       textareaRef.current.focus();
     }
-  }, []);
+  }, [isApiKeyReady, textareaRef]);
 
+  // Auto-resize when input changes
   useEffect(() => {
     autoResize();
   }, [input, autoResize]);
-
-  const handleChatInputContainerClick = useCallback((e: React.MouseEvent) => {
-    const target = e.target as Element;
-    if (
-      !target.closest(".apikey-config-button") &&
-      !target.closest(".model-selector") &&
-      !target.closest(".send-button") &&
-      !target.closest(".clear-button")
-    ) {
-      textareaRef.current?.focus();
-    }
-  }, []);
 
   const isSendButtonDisabled = isLoading || !isApiKeyReady;
   const sendButtonTitle = !isApiKeyReady
