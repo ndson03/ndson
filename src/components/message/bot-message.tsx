@@ -7,21 +7,11 @@ interface BotMessageProps {
 }
 
 export const BotMessage: React.FC<BotMessageProps> = ({ content }) => {
-  const isTyping = content === "typing...";
-
   return (
-    <div className={`bot-message ${isTyping ? "loading-message" : ""}`}>
-      <div className="message-content">
-        {isTyping ? (
-          <div className="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        ) : (
-          <MarkdownRenderer content={content} />
-        )}
-      </div>
+    <div
+      className="w-full leading-[2.2] break-words mb-4"
+    >
+        <MarkdownRenderer content={content} />
     </div>
   );
 };

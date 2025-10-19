@@ -7,16 +7,13 @@ interface UserMessageProps {
 
 export const UserMessage: React.FC<UserMessageProps> = ({ content }) => {
   return (
-    <div className="user-message-container">
+    <div className="user-message-container flex flex-col items-end leading-[2.2] mb-2.5">
       <div
-        className="user-message-text"
-        style={{
-          whiteSpace: "pre-wrap",
-          wordWrap: "break-word",
-        }}
+        className="max-w-[90%] px-4 py-1 rounded-[1.5rem] bg-[#e9e9e980] break-words text-black whitespace-pre-wrap"
       >
         {content}
       </div>
     </div>
   );
 };
+  

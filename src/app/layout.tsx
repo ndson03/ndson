@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body>
+      <body className="font-sans font-normal text-base text-black bg-white overflow-x-hidden antialiased">
         {children}
         <Toaster position="top-center" />
       </body>

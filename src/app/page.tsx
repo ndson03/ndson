@@ -164,7 +164,7 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="main-content">
+    <div className="pt-8 pb-[200px] transition-all duration-300 overflow-y-auto relative h-[97vh] w-full">
       {isWelcome && <WelcomeMessage />}
 
       <ApiKeyForm
@@ -180,9 +180,9 @@ export default function ChatPage() {
         targetElement={deleteButtonElement}
       />
 
-      <div className="container-fluid">
-        <div className="chat-container">
-          <div className="chat-box" ref={containerRef}>
+      <div className="container mx-auto">
+        <div className="flex flex-col h-full overflow-hidden relative w-[800px] mx-auto">
+          <div className="flex-1 overflow-y-auto flex flex-col" ref={containerRef}>
             {renderedMessages}
           </div>
 
