@@ -18,6 +18,7 @@ import ApiKeyForm from "../components/api-key-form/api-key-form";
 import { DeletePopup } from "../components/chat-input/delete-chat-history-popup";
 import { ChatInput } from "../components/chat-input/chat-input";
 import { LoadingMessage } from "../components/message/loading-message";
+import { ScrollToBottomButton } from "../components/button/scroll-to-bottom-button";
 
 export default function ChatPage() {
   const [input, setInput] = useState("");
@@ -29,10 +30,12 @@ export default function ChatPage() {
   const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
 
   const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
-    const { selectedModelId, selectedModel, models, handleModelSelect } = useModelSelector();
+  const { selectedModelId, selectedModel, models, handleModelSelect } =
+    useModelSelector();
 
   const { isThinking, toggleThinking } = useThinkingToggle(selectedModelId);
-  const { containerRef, scrollToBottom } = useScrollToBottom();
+  const { containerRef, scrollToBottom, showScrollButton } =
+    useScrollToBottom();
 
   const {
     isDBInitialized,
@@ -164,7 +167,10 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="pt-8 pb-[200px] transition-all duration-300 overflow-y-auto relative h-[97vh] w-full">
+    <div
+      className="pt-8 pb-[200px] transition-all duration-300 overflow-y-auto relative h-[97vh] w-full"
+      ref={containerRef}
+    >
       {isWelcome && <WelcomeMessage />}
 
       <ApiKeyForm
@@ -182,7 +188,7 @@ export default function ChatPage() {
 
       <div className="container mx-auto">
         <div className="flex flex-col h-full overflow-hidden relative w-[800px] mx-auto">
-          <div className="flex-1 overflow-y-auto flex flex-col" ref={containerRef}>
+          <div className="flex-1 overflow-y-auto flex flex-col">
             {renderedMessages}
           </div>
 
@@ -210,6 +216,11 @@ export default function ChatPage() {
           />
         </div>
       </div>
+
+      <ScrollToBottomButton
+        onClick={scrollToBottom}
+        isVisible={showScrollButton}
+      />
     </div>
   );
 }

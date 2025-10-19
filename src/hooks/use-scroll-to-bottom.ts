@@ -1,32 +1,45 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { UI_CONFIG } from "../constants";
 
 export const useScrollToBottom = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const scrollToBottom = useCallback(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const userMessages = containerRef.current.querySelectorAll(
-      ".user-message-container"
-    );
-    const lastUserMessage = userMessages[userMessages.length - 1];
-
-    if (lastUserMessage) {
-      lastUserMessage.scrollIntoView({
-        behavior: UI_CONFIG.SCROLL_BEHAVIOR,
-        block: "start",
-      });
-    } else {
-      containerRef.current.scrollTo({
-        top: containerRef.current.scrollHeight,
-        behavior: UI_CONFIG.SCROLL_BEHAVIOR,
-      });
-    }
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: UI_CONFIG.SCROLL_BEHAVIOR,
+    });
   }, []);
+
+  const checkScrollPosition = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+
+    setShowScrollButton(distanceFromBottom > 200);
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener("scroll", checkScrollPosition);
+    checkScrollPosition();
+
+    return () => {
+      container.removeEventListener("scroll", checkScrollPosition);
+    };
+  }, [checkScrollPosition]);
 
   return {
     containerRef,
     scrollToBottom,
+    showScrollButton,
   };
 };
