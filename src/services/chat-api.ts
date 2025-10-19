@@ -22,12 +22,10 @@ export class ChatApi {
       );
     }
 
-    // Nếu không có callback, trả về như cũ
     if (!onChunk) {
       return response.text();
     }
 
-    // Stream response
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let fullText = "";

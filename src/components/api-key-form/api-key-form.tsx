@@ -62,7 +62,7 @@ const ApiKeyForm: React.FC<ApiKeyManagerProps> = ({
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-              <Key className="mr-2" size={24} />
+              <Key size={24} />
               Cấu hình Gemini API Key
             </h2>
             <button

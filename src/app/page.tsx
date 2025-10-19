@@ -7,6 +7,8 @@ import { useApiKey } from "../hooks/use-api-key";
 import { useScrollToBottom } from "../hooks/use-scroll-to-bottom";
 import { useIndexedDB } from "../hooks/use-indexed-db";
 import { useChat } from "../hooks/use-chat";
+import { useModelSelector } from "../hooks/use-model-selector";
+import { useThinkingToggle } from "../hooks/use-thinking-toggle";
 import { handleApiError } from "../utils/error-handler";
 import { MESSAGES } from "../constants";
 
@@ -27,6 +29,9 @@ export default function ChatPage() {
   const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
 
   const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
+    const { selectedModelId, selectedModel, models, handleModelSelect } = useModelSelector();
+
+  const { isThinking, toggleThinking } = useThinkingToggle(selectedModelId);
   const { containerRef, scrollToBottom } = useScrollToBottom();
 
   const {
@@ -41,7 +46,9 @@ export default function ChatPage() {
     useChat({
       buildChatHistoryForAPI,
       saveMessageToHistory,
+      selectedModel: selectedModelId,
       apiKey,
+      isThinking,
     });
 
   // Initialize and load messages
@@ -140,21 +147,21 @@ export default function ChatPage() {
     [isApiKeyReady]
   );
 
-const renderedMessages = useMemo(
-  () => (
-    <>
-      {messages.map((message, index) => (
-        <ChatMessage
-          key={`${index}-${message.timestamp}`}
-          message={message}
-          index={index}
-        />
-      ))}
-      {isLoading && <LoadingMessage />}
-    </>
-  ),
-  [messages, isLoading]
-);
+  const renderedMessages = useMemo(
+    () => (
+      <>
+        {messages.map((message, index) => (
+          <ChatMessage
+            key={`${index}-${message.timestamp}`}
+            message={message}
+            index={index}
+          />
+        ))}
+        {isLoading && <LoadingMessage />}
+      </>
+    ),
+    [messages, isLoading]
+  );
 
   return (
     <div className="main-content">
@@ -194,6 +201,12 @@ const renderedMessages = useMemo(
             placeholder={placeholderText}
             isWelcome={isWelcome}
             setInputRef={setInputRef}
+            isThinking={isThinking}
+            onThinkingToggle={toggleThinking}
+            selectedModelId={selectedModelId}
+            selectedModel={selectedModel}
+            models={models}
+            onModelSelect={handleModelSelect}
           />
         </div>
       </div>

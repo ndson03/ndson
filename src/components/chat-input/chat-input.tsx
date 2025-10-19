@@ -2,6 +2,8 @@ import React, { useCallback, useEffect } from "react";
 import { Key, ArrowUp, Trash2 } from "lucide-react";
 import { ModelSelector } from "./model-selector";
 import { useAutoResize } from "@/src/hooks/use-auto-resize";
+import { ThinkingToggle } from "./thinking-toggle";
+import { Model } from "@/src/types";
 
 interface ChatInputProps {
   input: string;
@@ -15,6 +17,12 @@ interface ChatInputProps {
   placeholder: string;
   isWelcome: boolean;
   setInputRef?: (ref: HTMLTextAreaElement | null) => void;
+  isThinking: boolean;
+  onThinkingToggle: () => void;
+  selectedModelId: string;
+  selectedModel?: Model;
+  models: Model[];
+  onModelSelect: (modelId: string) => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -29,10 +37,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   placeholder,
   isWelcome,
   setInputRef,
+  isThinking,
+  onThinkingToggle,
+  selectedModelId,
+  selectedModel,
+  models,
+  onModelSelect,
 }) => {
   const { textareaRef, autoResize } = useAutoResize();
 
-  // Callback ref to pass textarea element up to parent
   const textareaCallbackRef = useCallback(
     (node: HTMLTextAreaElement | null) => {
       textareaRef.current = node;
@@ -60,7 +73,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         !target.closest(".apikey-config-button") &&
         !target.closest(".model-selector") &&
         !target.closest(".send-button") &&
-        !target.closest(".clear-button")
+        !target.closest(".clear-button") &&
+        !target.closest(".thinking-toggle")
       ) {
         textareaRef.current?.focus();
       }
@@ -68,7 +82,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     [textareaRef]
   );
 
-  // Focus textarea when API key is ready
   useEffect(() => {
     if (isApiKeyReady && textareaRef.current) {
       const timer = setTimeout(() => {
@@ -79,14 +92,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }
   }, [isApiKeyReady, textareaRef]);
 
-  // Initial focus when component mounts
   useEffect(() => {
     if (textareaRef.current && isApiKeyReady) {
       textareaRef.current.focus();
     }
   }, [isApiKeyReady, textareaRef]);
 
-  // Auto-resize when input changes
   useEffect(() => {
     autoResize();
   }, [input, autoResize]);
@@ -120,17 +131,27 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-1">
             <div
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 mr-2"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 apikey-config-button"
               onClick={onApiKeyConfig}
               title="Cấu hình API Key"
             >
               <Key size={16} className="w-4 h-4" />
             </div>
-            <ModelSelector />
+            <ThinkingToggle
+              enabled={isThinking}
+              onToggle={onThinkingToggle}
+              selectedModel={selectedModelId}
+            />
           </div>
           <div className="flex items-center gap-1">
+            <ModelSelector
+              selectedModelId={selectedModelId}
+              selectedModel={selectedModel}
+              models={models}
+              onModelSelect={onModelSelect}
+            />
             <div
-              className={`inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 ${
+              className={`inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 send-button ${
                 isSendButtonDisabled ? "opacity-50 cursor-not-allowed" : ""
               }`}
               onClick={onSendMessage}
@@ -139,7 +160,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               <ArrowUp size={16} className="w-4 h-4" />
             </div>
             <div
-              className="inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 clear-button"
               onClick={onDeleteHistory}
               title="Xóa lịch sử chat"
             >

@@ -15,4 +15,11 @@ export interface ApiPayload {
   chatHistory: ApiMessage[];
   apiKey: string;
   model: string;
+  isThinking?: boolean;
+}
+
+export interface Model {
+  id: string;
+  name: string;
+  description?: string;
 }

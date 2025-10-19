@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 
-// ⚙️ Bắt buộc khi deploy trên Vercel để tránh Edge Runtime
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// CORS headers
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -14,19 +12,14 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Max-Age": "86400",
 };
 
-// =====================
-// INTERFACES
-// =====================
 interface RequestBody {
   question: string;
   chatHistory: Array<{ role: string; parts: Array<{ text: string }> }>;
   apiKey: string;
   model: string;
+  isThinking?: boolean;
 }
 
-// =====================
-// OPTIONS (Preflight)
-// =====================
 export async function OPTIONS(): Promise<NextResponse> {
   return new NextResponse(null, {
     status: 204,
@@ -34,14 +27,10 @@ export async function OPTIONS(): Promise<NextResponse> {
   });
 }
 
-// =====================
-// POST (Main logic with Streaming)
-// =====================
 export async function POST(request: Request): Promise<Response> {
   try {
     let body: RequestBody;
 
-    // Parse body
     try {
       body = await request.json();
     } catch {
@@ -51,7 +40,7 @@ export async function POST(request: Request): Promise<Response> {
       });
     }
 
-    const { question, chatHistory, apiKey, model } = body;
+    const { question, chatHistory, apiKey, model, isThinking } = body;
 
     if (!question || typeof question !== "string") {
       return new NextResponse("Question is required and must be a string", {
@@ -69,15 +58,23 @@ export async function POST(request: Request): Promise<Response> {
 
     const trimmedApiKey = apiKey.trim();
 
-    // Build message
     const userMessage = {
       role: "user" as const,
       parts: [{ text: question }],
     };
     const updatedChatHistory = [...chatHistory, userMessage];
-    const requestBody = { contents: updatedChatHistory };
 
-    // Call Gemini API with streaming
+    // Build request body with optional thinking config
+    const requestBody: any = {
+      contents: updatedChatHistory,
+    };
+
+    requestBody.generationConfig = {
+      thinkingConfig: {
+        thinkingBudget: isThinking ? -1 : 0,
+      },
+    };
+
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
 
     let geminiResponse: Response;
@@ -96,7 +93,6 @@ export async function POST(request: Request): Promise<Response> {
       });
     }
 
-    // Check Gemini API response
     if (!geminiResponse.ok) {
       let errorDetails = "";
       try {
@@ -122,7 +118,6 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // Stream the response back to client
     const stream = new ReadableStream({
       async start(controller) {
         const reader = geminiResponse.body?.getReader();
@@ -187,9 +182,6 @@ export async function POST(request: Request): Promise<Response> {
   }
 }
 
-// =====================
-// GET (Health check)
-// =====================
 export async function GET(): Promise<NextResponse> {
   return new NextResponse("Chat API is running", {
     status: 200,

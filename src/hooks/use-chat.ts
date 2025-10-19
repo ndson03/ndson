@@ -6,7 +6,8 @@ interface UseChatParams {
   buildChatHistoryForAPI: () => Promise<any[]>;
   saveMessageToHistory: (isUser: boolean, content: string) => Promise<void>;
   apiKey: string;
-  selectedModel?: string;
+  selectedModel: string;
+  isThinking: boolean;
 }
 
 export const useChat = ({
@@ -14,6 +15,7 @@ export const useChat = ({
   saveMessageToHistory,
   apiKey,
   selectedModel,
+  isThinking,
 }: UseChatParams) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,20 +86,14 @@ export const useChat = ({
     content,
     timestamp: new Date().toISOString(),
   });
-
   const sendMessage = useCallback(
     async (question: string) => {
       if (!question.trim() || isLoading) return;
 
       const userMessage = createMessage(true, question);
-
-      // Thêm user message
       addMessage(userMessage);
-      
-      // Bật loading state (không thêm loading message vào messages array)
       setIsLoading(true);
 
-      // Reset animation state
       currentIndexRef.current = 0;
       targetTextRef.current = "";
       stopTextAnimation();
@@ -111,43 +107,37 @@ export const useChat = ({
 
         let isFirstChunk = true;
 
-        // Gọi API với streaming callback
         const response = await ChatApi.sendMessage(
           {
             question,
             chatHistory,
             apiKey,
             model,
+            isThinking,
           },
           (streamedText) => {
-            // Nếu là chunk đầu tiên, tắt loading và tạo bot message mới
             if (isFirstChunk) {
               isFirstChunk = false;
-              setIsLoading(false); // Tắt loading ngay khi có chunk đầu tiên
+              setIsLoading(false);
               currentIndexRef.current = 0;
               const botMessage = createMessage(false, "");
               addMessage(botMessage);
             }
-            // Cập nhật target text và bắt đầu/tiếp tục animation
             startTextAnimation(streamedText);
           }
         );
 
-        // Đảm bảo hiển thị full text cuối cùng
         stopTextAnimation();
 
-        // Lưu vào history sau khi hoàn tất
         await saveMessageToHistory(true, question);
         await saveMessageToHistory(false, response);
 
         return response;
       } catch (error) {
         stopTextAnimation();
-        // Xóa user message nếu có lỗi
         removeLastMessages(1);
         throw error;
       } finally {
-        // Đảm bảo tắt loading trong mọi trường hợp
         setIsLoading(false);
       }
     },
@@ -155,6 +145,7 @@ export const useChat = ({
       isLoading,
       apiKey,
       selectedModel,
+      isThinking,
       buildChatHistoryForAPI,
       saveMessageToHistory,
       addMessage,
