@@ -153,6 +153,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
               />
             );
           },
+
+          hr() {
+            return <hr className="my-3 border-t border-gray-300" />;
+          }
         }}
       >
         {content}

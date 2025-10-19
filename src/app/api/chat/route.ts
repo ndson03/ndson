@@ -7,7 +7,7 @@ export const revalidate = 0;
 
 // CORS headers
 const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*", // Hoặc domain cụ thể: "https://yourdomain.vercel.app"
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers":
     "Content-Type, Authorization, X-Requested-With",
@@ -24,14 +24,6 @@ interface RequestBody {
   model: string;
 }
 
-interface GeminiResponse {
-  candidates?: Array<{
-    content: {
-      parts: Array<{ text: string }>;
-    };
-  }>;
-}
-
 // =====================
 // OPTIONS (Preflight)
 // =====================
@@ -43,9 +35,9 @@ export async function OPTIONS(): Promise<NextResponse> {
 }
 
 // =====================
-// POST (Main logic)
+// POST (Main logic with Streaming)
 // =====================
-export async function POST(request: Request): Promise<NextResponse> {
+export async function POST(request: Request): Promise<Response> {
   try {
     let body: RequestBody;
 
@@ -85,18 +77,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     const updatedChatHistory = [...chatHistory, userMessage];
     const requestBody = { contents: updatedChatHistory };
 
-    // Call Gemini API
-    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    // Call Gemini API with streaming
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
 
     let geminiResponse: Response;
     try {
-      geminiResponse = await fetch(`${geminiApiUrl}?key=${trimmedApiKey}`, {
+      geminiResponse = await fetch(`${geminiApiUrl}&key=${trimmedApiKey}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
         },
         body: JSON.stringify(requestBody),
       });
@@ -133,25 +122,62 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    // Parse Gemini data
-    let geminiData: GeminiResponse;
-    try {
-      geminiData = await geminiResponse.json();
-    } catch {
-      return new NextResponse("Invalid response from Gemini API", {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "text/plain" },
-      });
-    }
+    // Stream the response back to client
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = geminiResponse.body?.getReader();
+        const decoder = new TextDecoder();
 
-    // Extract response text
-    const text =
-      geminiData.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "No response from Gemini";
+        if (!reader) {
+          controller.close();
+          return;
+        }
 
-    return new NextResponse(text, {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "text/plain" },
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) {
+              controller.close();
+              break;
+            }
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                try {
+                  const jsonStr = line.slice(6);
+                  if (jsonStr.trim() === "") continue;
+
+                  const data = JSON.parse(jsonStr);
+                  const text =
+                    data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+                  if (text) {
+                    controller.enqueue(new TextEncoder().encode(text));
+                  }
+                } catch (e) {
+                  console.error("Error parsing SSE data:", e);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Streaming error:", error);
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
     });
   } catch {
     return new NextResponse("Internal server error", {
