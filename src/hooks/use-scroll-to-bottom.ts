@@ -7,11 +7,13 @@ export const useScrollToBottom = () => {
   const scrollToBottom = useCallback(() => {
     if (!containerRef.current) return;
 
-    const botMessages = containerRef.current.querySelectorAll(".bot-message");
-    const lastBotMessage = botMessages[botMessages.length - 1];
+    const userMessages = containerRef.current.querySelectorAll(
+      ".user-message-container"
+    );
+    const lastUserMessage = userMessages[userMessages.length - 1];
 
-    if (lastBotMessage) {
-      lastBotMessage.scrollIntoView({
+    if (lastUserMessage) {
+      lastUserMessage.scrollIntoView({
         behavior: UI_CONFIG.SCROLL_BEHAVIOR,
         block: "start",
       });

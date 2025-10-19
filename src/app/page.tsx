@@ -15,6 +15,7 @@ import WelcomeMessage from "../components/message/welcom-message";
 import ApiKeyForm from "../components/api-key-form/api-key-form";
 import { DeletePopup } from "../components/chat-input/delete-chat-history-popup";
 import { ChatInput } from "../components/chat-input/chat-input";
+import { LoadingMessage } from "../components/message/loading-message";
 
 export default function ChatPage() {
   const [input, setInput] = useState("");
@@ -139,17 +140,21 @@ export default function ChatPage() {
     [isApiKeyReady]
   );
 
-  const renderedMessages = useMemo(
-    () =>
-      messages.map((message, index) => (
+const renderedMessages = useMemo(
+  () => (
+    <>
+      {messages.map((message, index) => (
         <ChatMessage
           key={`${index}-${message.timestamp}`}
           message={message}
           index={index}
         />
-      )),
-    [messages]
-  );
+      ))}
+      {isLoading && <LoadingMessage />}
+    </>
+  ),
+  [messages, isLoading]
+);
 
   return (
     <div className="main-content">

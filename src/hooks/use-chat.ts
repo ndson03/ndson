@@ -55,7 +55,6 @@ export const useChat = ({
       
       animationFrameRef.current = requestAnimationFrame(animateText);
     } else {
-      // Nếu đã hiển thị hết, dừng animation frame
       animationFrameRef.current = null;
     }
   }, [updateLastMessage]);
@@ -63,11 +62,9 @@ export const useChat = ({
   const startTextAnimation = useCallback((text: string) => {
     targetTextRef.current = text;
     
-    // Nếu chưa có animation đang chạy, bắt đầu mới
     if (animationFrameRef.current === null) {
       animateText();
     }
-    // Nếu đã có animation, nó sẽ tự động lấy targetTextRef mới
   }, [animateText]);
 
   const stopTextAnimation = useCallback(() => {
@@ -93,10 +90,11 @@ export const useChat = ({
       if (!question.trim() || isLoading) return;
 
       const userMessage = createMessage(true, question);
-      const loadingMessage = createMessage(false, "typing...");
 
+      // Thêm user message
       addMessage(userMessage);
-      addMessage(loadingMessage);
+      
+      // Bật loading state (không thêm loading message vào messages array)
       setIsLoading(true);
 
       // Reset animation state
@@ -122,10 +120,13 @@ export const useChat = ({
             model,
           },
           (streamedText) => {
-            // Nếu là chunk đầu tiên, bắt đầu animation
+            // Nếu là chunk đầu tiên, tắt loading và tạo bot message mới
             if (isFirstChunk) {
               isFirstChunk = false;
+              setIsLoading(false); // Tắt loading ngay khi có chunk đầu tiên
               currentIndexRef.current = 0;
+              const botMessage = createMessage(false, "");
+              addMessage(botMessage);
             }
             // Cập nhật target text và bắt đầu/tiếp tục animation
             startTextAnimation(streamedText);
@@ -142,9 +143,11 @@ export const useChat = ({
         return response;
       } catch (error) {
         stopTextAnimation();
-        removeLastMessages(2);
+        // Xóa user message nếu có lỗi
+        removeLastMessages(1);
         throw error;
       } finally {
+        // Đảm bảo tắt loading trong mọi trường hợp
         setIsLoading(false);
       }
     },
