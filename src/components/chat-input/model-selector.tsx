@@ -85,13 +85,13 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       {isModelDropdownOpen && (
         <div
           ref={dropdownRef}
-          className="model-list fixed bg-white border border-gray-200 rounded-lg shadow-lg"
+          className="model-list absolute bg-white border border-gray-200 rounded-lg shadow-lg"
           style={{
             zIndex: 9999,
             width: "256px",
-            top: dropdownPosition.top,
-            left: dropdownPosition.left,
-            transform: "translateY(-100%)",
+            bottom: "100%",
+            left: 0,
+            marginBottom: "8px",
           }}
         >
           <div className="py-1">

@@ -168,7 +168,12 @@ export default function ChatPage() {
 
   return (
     <div
-      className="pt-8 pb-[200px] transition-all duration-300 overflow-y-auto relative h-[97vh] w-full"
+      className={`pt-4 sm:pt-6 md:pt-8 ${
+        isWelcome
+          ? "pb-4 sm:pb-6 md:pb-8"
+          : "pb-[120px] sm:pb-[130px] md:pb-[140px]"
+      } transition-all duration-300 overflow-y-scroll h-[100vh] w-full px-2 sm:px-4`}
+      style={{ scrollbarGutter: "stable" }}
       ref={containerRef}
     >
       {isWelcome && <WelcomeMessage />}
@@ -187,35 +192,33 @@ export default function ChatPage() {
       />
 
       <div className="container mx-auto">
-        <div className="flex flex-col h-full overflow-hidden relative w-[800px] mx-auto">
-          <div className="flex-1 overflow-y-auto flex flex-col">
-            {renderedMessages}
-          </div>
-
-          <ChatInput
-            input={input}
-            onInputChange={setInput}
-            onSendMessage={handleSendMessage}
-            onKeyDown={handleKeyDown}
-            onApiKeyConfig={() => setShowApiKeyModal(true)}
-            onDeleteHistory={(e) => {
-              setDeleteButtonElement(e.currentTarget as HTMLElement);
-              setShowDeletePopup(true);
-            }}
-            isApiKeyReady={isApiKeyReady}
-            isLoading={isLoading}
-            placeholder={placeholderText}
-            isWelcome={isWelcome}
-            setInputRef={setInputRef}
-            isThinking={isThinking}
-            onThinkingToggle={toggleThinking}
-            selectedModelId={selectedModelId}
-            selectedModel={selectedModel}
-            models={models}
-            onModelSelect={handleModelSelect}
-          />
+        <div className="flex flex-col h-full overflow-hidden relative w-full sm:w-[95%] md:w-[800px] mx-auto">
+          <div className="flex-1 flex flex-col">{renderedMessages}</div>
         </div>
       </div>
+
+      <ChatInput
+        input={input}
+        onInputChange={setInput}
+        onSendMessage={handleSendMessage}
+        onKeyDown={handleKeyDown}
+        onApiKeyConfig={() => setShowApiKeyModal(true)}
+        onDeleteHistory={(e) => {
+          setDeleteButtonElement(e.currentTarget as HTMLElement);
+          setShowDeletePopup(true);
+        }}
+        isApiKeyReady={isApiKeyReady}
+        isLoading={isLoading}
+        placeholder={placeholderText}
+        isWelcome={isWelcome}
+        setInputRef={setInputRef}
+        isThinking={isThinking}
+        onThinkingToggle={toggleThinking}
+        selectedModelId={selectedModelId}
+        selectedModel={selectedModel}
+        models={models}
+        onModelSelect={handleModelSelect}
+      />
 
       <ScrollToBottomButton
         onClick={scrollToBottom}

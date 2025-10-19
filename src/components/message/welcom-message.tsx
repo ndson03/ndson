@@ -1,6 +1,6 @@
 export default function WelcomeMessage() {
   return (
-    <div className="flex items-center justify-center mt-[14%] mb-8">
+    <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -mt-32 z-0">
       <div className="text-center max-w-2xl mx-auto">
         <h1 className="text-5xl md:text-6xl font-light text-gray-800">
           Xin chào
@@ -8,7 +8,6 @@ export default function WelcomeMessage() {
         <p className="text-xl md:text-3xl text-gray-600 mt-6 font-light">
           Tôi có thể giúp gì cho bạn?
         </p>
-        <div className="w-16 h-px bg-gray-300 mx-auto mt-8"></div>
       </div>
     </div>
   );
