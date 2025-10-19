@@ -7,7 +7,6 @@ import { useApiKey } from "../hooks/use-api-key";
 import { useScrollToBottom } from "../hooks/use-scroll-to-bottom";
 import { useIndexedDB } from "../hooks/use-indexed-db";
 import { useChat } from "../hooks/use-chat";
-import { highlightCodeBlocks } from "../utils/code-highlight";
 import { handleApiError } from "../utils/error-handler";
 import { MESSAGES } from "../constants";
 
@@ -67,16 +66,6 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages.length, scrollToBottom]);
-
-  // Highlight code blocks in bot messages
-  useEffect(() => {
-    if (!containerRef.current || messages.length === 0) return;
-
-    const lastMessage = messages[messages.length - 1];
-    if (!lastMessage.isUser && containerRef.current) {
-      highlightCodeBlocks(containerRef.current);
-    }
-  }, [messages, containerRef]);
 
   // Handle send message
   const handleSendMessage = useCallback(async () => {

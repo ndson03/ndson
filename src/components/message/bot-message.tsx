@@ -1,6 +1,5 @@
 import React from "react";
-import { marked } from "marked";
-import DOMPurify from "isomorphic-dompurify";
+import { MarkdownRenderer } from "../highlight/markdown";
 
 interface BotMessageProps {
   content: string;
@@ -20,42 +19,7 @@ export const BotMessage: React.FC<BotMessageProps> = ({ content }) => {
             <span></span>
           </div>
         ) : (
-          <div
-            className="markdown-content"
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(marked(content) as string, {
-                ALLOWED_TAGS: [
-                  "p",
-                  "br",
-                  "strong",
-                  "em",
-                  "u",
-                  "strike",
-                  "code",
-                  "pre",
-                  "ul",
-                  "ol",
-                  "li",
-                  "h1",
-                  "h2",
-                  "h3",
-                  "h4",
-                  "h5",
-                  "h6",
-                  "blockquote",
-                  "a",
-                  "img",
-                  "table",
-                  "thead",
-                  "tbody",
-                  "tr",
-                  "td",
-                  "th",
-                ],
-                ALLOWED_ATTR: ["href", "src", "alt", "title", "class"],
-              }),
-            }}
-          />
+          <MarkdownRenderer content={content} />
         )}
       </div>
     </div>
