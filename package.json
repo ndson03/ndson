@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",
+    "@tiptap/pm": "^3.7.2",
+    "@tiptap/react": "^3.7.2",
+    "@tiptap/starter-kit": "^3.7.2",
     "grapesjs": "^0.22.13",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.26.0",
