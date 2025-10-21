@@ -35,7 +35,6 @@ export const BotMessage: React.FC<BotMessageProps> = ({
         <button
           onClick={handleCopy}
           className="mt-2 px-2 py-2 rounded-full border-none cursor-pointer transition-all duration-200 ease-in-out flex items-center gap-1 text-sm text-[#586069] hover:text-gray-900 hover:bg-gray-100 active:scale-95"
-          title="Sao chép tin nhắn"
         >
           {copied ? (
             <>

@@ -69,7 +69,6 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         ref={modelButtonRef}
         onClick={handleModelButtonClick}
         className="cursor-pointer flex items-center justify-between px-2 py-2 text-sm  rounded-full bg-white hover:bg-gray-100 focus:outline-none transition-colors"
-        title="Chọn model"
       >
         <span className="font-medium text-gray-600">
           {selectedModel?.name || selectedModelId}

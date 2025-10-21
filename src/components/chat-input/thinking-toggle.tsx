@@ -21,13 +21,6 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
     if (!isDisabled) onToggle();
   };
 
-  /** Tooltip */
-  const title = isProModel
-    ? "Model Pro luôn bật chế độ suy nghĩ sâu"
-    : enabled
-    ? "Tắt suy nghĩ sâu"
-    : "Bật suy nghĩ sâu";
-
   /** Button style */
   const buttonClasses = [
     "thinking-toggle group inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-full transition-all duration-200 select-none",
@@ -90,7 +83,6 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
     <button
       onClick={handleClick}
       className={buttonClasses}
-      title={title}
       disabled={isDisabled}
       aria-pressed={enabled}
     >

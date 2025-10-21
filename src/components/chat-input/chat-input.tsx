@@ -103,9 +103,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   }, [input, autoResize]);
 
   const isSendButtonDisabled = isLoading || !isApiKeyReady;
-  const sendButtonTitle = !isApiKeyReady
-    ? "Vui lòng cấu hình API key"
-    : "Gửi câu hỏi";
 
   return (
     <>
@@ -134,7 +131,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <div
               className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 apikey-config-button"
               onClick={onApiKeyConfig}
-              title="Cấu hình API Key"
             >
               <Key size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
@@ -156,14 +152,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 isSendButtonDisabled ? "opacity-50 cursor-not-allowed" : ""
               }`}
               onClick={onSendMessage}
-              title={sendButtonTitle}
             >
               <ArrowUp size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <div
               className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 clear-button"
               onClick={onDeleteHistory}
-              title="Xóa lịch sử chat"
             >
               <Trash2 size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>

@@ -8,9 +8,9 @@ interface CodeBlockProps {
   language?: string;
 }
 
-export const CodeBlock: React.FC<CodeBlockProps> = ({ 
-  code, 
-  language = "text" 
+export const CodeBlock: React.FC<CodeBlockProps> = ({
+  code,
+  language = "text",
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -34,7 +34,6 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         <button
           className="border-none cursor-pointer transition-transform duration-200 ease-in-out flex items-center gap-1 active:scale-95"
           onClick={handleCopy}
-          title="Sao chép code"
         >
           {copied ? (
             <>
