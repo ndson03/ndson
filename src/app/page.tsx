@@ -53,14 +53,20 @@ export default function ChatPage() {
     clearChatHistory,
   } = useIndexedDB();
 
-  const { messages, isLoading, sendMessage, clearMessages, setMessages } =
-    useChat({
-      buildChatHistoryForAPI,
-      saveMessageToHistory,
-      selectedModel: selectedModelId,
-      apiKey,
-      isThinking,
-    });
+  const {
+    messages,
+    isLoading,
+    isMessageStreaming,
+    sendMessage,
+    clearMessages,
+    setMessages,
+  } = useChat({
+    buildChatHistoryForAPI,
+    saveMessageToHistory,
+    selectedModel: selectedModelId,
+    apiKey,
+    isThinking,
+  });
 
   // Initialize and load messages
   useEffect(() => {
@@ -171,6 +177,7 @@ export default function ChatPage() {
             key={`${index}-${message.timestamp}`}
             message={message}
             index={index}
+            isMessageStreaming={isMessageStreaming}
           />
         ))}
         {isLoading && <LoadingMessage />}

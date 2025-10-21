@@ -19,6 +19,7 @@ export const useChat = ({
 }: UseChatParams) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMessageStreaming, setIsMessageStreaming] = useState(false);
   const animationFrameRef = useRef<number | null>(null);
   const targetTextRef = useRef<string>("");
   const currentIndexRef = useRef<number>(0);
@@ -49,36 +50,43 @@ export const useChat = ({
         currentIndexRef.current + Math.ceil(Math.random() * 8 + 5),
         targetTextRef.current.length
       );
-      
+
       const displayText = targetTextRef.current.slice(0, nextIndex);
       currentIndexRef.current = nextIndex;
-      
+
       updateLastMessage(displayText);
-      
+
       animationFrameRef.current = requestAnimationFrame(animateText);
     } else {
       animationFrameRef.current = null;
+      setIsMessageStreaming(false);
     }
   }, [updateLastMessage]);
 
-  const startTextAnimation = useCallback((text: string) => {
-    targetTextRef.current = text;
-    
-    if (animationFrameRef.current === null) {
-      animateText();
-    }
-  }, [animateText]);
+  const startTextAnimation = useCallback(
+    (text: string) => {
+      targetTextRef.current = text;
+      setIsMessageStreaming(true);
+
+      if (animationFrameRef.current === null) {
+        animateText();
+      }
+    },
+    [animateText]
+  );
 
   const stopTextAnimation = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    
+
     if (targetTextRef.current) {
       updateLastMessage(targetTextRef.current);
       currentIndexRef.current = targetTextRef.current.length;
     }
+
+    setIsMessageStreaming(false);
   }, [updateLastMessage]);
 
   const createMessage = (isUser: boolean, content: string): Message => ({
@@ -86,6 +94,7 @@ export const useChat = ({
     content,
     timestamp: new Date().toISOString(),
   });
+
   const sendMessage = useCallback(
     async (question: string) => {
       if (!question.trim() || isLoading) return;
@@ -164,6 +173,7 @@ export const useChat = ({
   return {
     messages,
     isLoading,
+    isMessageStreaming,
     sendMessage,
     clearMessages,
     setMessages,
