@@ -20,8 +20,7 @@ import { MESSAGES } from "../constants";
 
 import { ChatMessage } from "../components/message/chat-message";
 import WelcomeMessage from "../components/message/welcom-message";
-import ApiKeyForm from "../components/api-key-form/api-key-form";
-import { DeletePopup } from "../components/chat-input/delete-chat-history-popup";
+import ApiKeyForm from "../components/setting/setting-dialog";
 import { ChatInput } from "../components/chat-input/chat-input";
 import { LoadingMessage } from "../components/message/loading-message";
 import { ScrollToBottomButton } from "../components/button/scroll-to-bottom-button";
@@ -29,9 +28,6 @@ import { ScrollToBottomButton } from "../components/button/scroll-to-bottom-butt
 export default function ChatPage() {
   const [input, setInput] = useState("");
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const [deleteButtonElement, setDeleteButtonElement] =
-    useState<HTMLElement | null>(null);
   const [isWelcome, setIsWelcome] = useState(false);
   const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
 
@@ -131,7 +127,6 @@ export default function ChatPage() {
       if (success) {
         clearMessages();
         setIsWelcome(true);
-        setShowDeletePopup(false);
         isInitialLoad.current = true;
 
         setTimeout(() => {
@@ -144,8 +139,6 @@ export default function ChatPage() {
       }
     } catch (error) {
       alert(MESSAGES.DELETE_ERROR);
-    } finally {
-      setShowDeletePopup(false);
     }
   }, [clearChatHistory, clearMessages, inputRef, isApiKeyReady]);
 
@@ -183,7 +176,7 @@ export default function ChatPage() {
         {isLoading && <LoadingMessage />}
       </>
     ),
-    [messages, isLoading]
+    [messages, isLoading, isMessageStreaming]
   );
 
   return (
@@ -200,13 +193,6 @@ export default function ChatPage() {
         onClose={() => setShowApiKeyModal(false)}
       />
 
-      <DeletePopup
-        isOpen={showDeletePopup}
-        onConfirm={handleClearHistory}
-        onCancel={() => setShowDeletePopup(false)}
-        targetElement={deleteButtonElement}
-      />
-
       <div className="container mx-auto">
         <div className="flex flex-col h-full overflow-hidden relative w-full sm:w-[95%] md:w-[800px] mx-auto">
           <div className="flex-1 flex flex-col">{renderedMessages}</div>
@@ -219,10 +205,7 @@ export default function ChatPage() {
         onSendMessage={handleSendMessage}
         onKeyDown={handleKeyDown}
         onApiKeyConfig={() => setShowApiKeyModal(true)}
-        onDeleteHistory={(e) => {
-          setDeleteButtonElement(e.currentTarget as HTMLElement);
-          setShowDeletePopup(true);
-        }}
+        onClearHistory={handleClearHistory}
         isApiKeyReady={isApiKeyReady}
         isLoading={isLoading}
         placeholder={placeholderText}

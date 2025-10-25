@@ -5,17 +5,17 @@ export const DEFAULT_MODELS: Model[] = [
   {
     id: "gemini-2.5-flash-lite",
     name: "2.5 Flash-Lite",
-    description: "Nhẹ, rẻ, tốc độ cao, quy mô lớn",
+    description: "Nhẹ, tốc độ cao",
   },
   {
     id: "gemini-2.5-flash",
     name: "2.5 Flash",
-    description: "Nhanh, cân bằng giữa tốc độ và chi phí",
+    description: "Trợ giúp nhanh toàn diện",
   },
   {
     id: "gemini-2.5-pro",
     name: "2.5 Pro",
-    description: "Mạnh, cho bài toán phức tạp và code nặng",
+    description: "Suy luận, giải toán và lập trình",
   },
 ];
 
