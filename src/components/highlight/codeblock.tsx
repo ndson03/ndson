@@ -35,21 +35,21 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
 
   return (
     <div className="relative my-4 rounded-2xl overflow-hidden border border-border">
-      <div className="flex justify-between items-center px-4 py-2 bg-secondary text-muted-foreground text-sm">
-        <span className="font-semibold uppercase text-sm tracking-wide">
+      <div className="flex justify-between items-center px-3 py-2 bg-[var(--codeblock-header-background)] text-primative text-xs">
+        <span className="font-semibold tracking-wide">
           {language}
         </span>
         <button
-          className="border-none cursor-pointer transition-all duration-200 ease-in-out flex items-center gap-1 active:scale-95 hover:text-foreground"
+          className="border-none cursor-pointer transition-all duration-200 ease-in-out flex items-center gap-1 hover:text-foreground"
           onClick={handleCopy}
         >
           {copied ? (
             <>
-              <Check size={16} /> Đã sao chép
+              <Check size={14} /> Đã sao chép
             </>
           ) : (
             <>
-              <Copy size={16} /> Sao chép
+              <Copy size={14} /> Sao chép
             </>
           )}
         </button>
@@ -61,6 +61,11 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           margin: 0,
           borderRadius: "0 0 8px 8px",
           padding: "1rem",
+          fontSize: "14px",
+          background: "var(--codeblock-background)",
+        }}
+        codeTagProps={{
+          style: { background: "none" },
         }}
         PreTag="div"
       >

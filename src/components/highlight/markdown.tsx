@@ -27,7 +27,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             if (!isBlock) {
               return (
                 <code
-                  className="bg-secondary/60 text-foreground font-medium px-1.5 py-0.5 rounded"
+                  className="bg-secondary text-foreground font-medium px-1.5 py-0.5 rounded"
                   {...props}
                 >
                   {children}
