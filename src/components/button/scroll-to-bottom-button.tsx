@@ -14,8 +14,8 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
     <button
       onClick={onClick}
       className={`fixed bottom-[105px] left-1/2 transform -translate-x-1/2 
-                 bg-white border border-gray-200 rounded-full p-1.5 shadow-lg 
-                 hover:bg-gray-50 transition-all duration-300 z-10 
+                 bg-card border border-border rounded-full p-1.5 shadow-lg 
+                 hover:bg-secondary transition-all duration-300 z-10 
                  flex items-center justify-center cursor-pointer
                  ${
                    isVisible
@@ -24,7 +24,7 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
                  }`}
       aria-label="Scroll to bottom"
     >
-      <ArrowDown size={20} className="text-gray-700" />
+      <ArrowDown size={20} className="text-foreground" />
     </button>
   );
 };

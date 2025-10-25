@@ -30,19 +30,19 @@ export const DeletePopup: React.FC<DeletePopupProps> = ({
         align="center"
         sideOffset={8}
       >
-        <div className="text-sm text-gray-800 dark:text-gray-200 mb-3 font-medium text-center">
+        <div className="text-sm text-foreground mb-3 font-medium text-center">
           Xóa toàn bộ lịch sử chat?
         </div>
         <div className="flex gap-2 justify-center">
           <button
             onClick={handleConfirm}
-            className="px-3 py-1.5 text-xs rounded-md text-red-600 bg-red-50 hover:bg-red-100 transition-colors duration-150 cursor-pointer"
+            className="px-3 py-1.5 text-xs rounded-md text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors duration-150 cursor-pointer"
           >
             Xóa
           </button>
           <button
             onClick={onCancel}
-            className="px-3 py-1.5 text-xs rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition-colors duration-150 cursor-pointer"
+            className="px-3 py-1.5 text-xs rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors duration-150 cursor-pointer"
           >
             Hủy
           </button>

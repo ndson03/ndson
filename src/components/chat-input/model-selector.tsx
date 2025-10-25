@@ -30,7 +30,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 sm:h-8 px-2 rounded-full  hover:bg-gray-100 text-gray-600 font-medium model-selector"
+          className="h-7 sm:h-8 px-2 rounded-full hover:bg-secondary text-muted-foreground font-medium model-selector"
         >
           <span className="text-sm">
             {selectedModel?.name || selectedModelId}
@@ -52,19 +52,24 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               setIsOpen(false);
             }}
             className={`flex flex-row items-center justify-between cursor-pointer ${
-              selectedModelId === model.id ? "bg-blue-50 text-blue-700" : ""
+              selectedModelId === model.id
+                ? "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400"
+                : ""
             }`}
           >
             <div className="flex flex-col items-start">
               <span className="font-medium text-sm">{model.name}</span>
               {model.description && (
-                <span className="text-xs text-gray-500 mt-0.5">
+                <span className="text-xs text-muted-foreground mt-0.5">
                   {model.description}
                 </span>
               )}
             </div>
             {selectedModelId === model.id && (
-              <Check size={16} className="text-blue-700 flex-shrink-0 ml-2" />
+              <Check
+                size={16}
+                className="text-blue-700 dark:text-blue-400 flex-shrink-0 ml-2"
+              />
             )}
           </DropdownMenuItem>
         ))}

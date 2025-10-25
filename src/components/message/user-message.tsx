@@ -15,7 +15,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({ content }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="max-w-[90%] px-4 py-0 rounded-[1.5rem] bg-[#e9e9e980] break-words text-black whitespace-pre-wrap">
+      <div className="max-w-[90%] px-4 py-0 rounded-[1.5rem] bg-secondary/50 break-words text-foreground whitespace-pre-wrap">
         {content}
       </div>
 

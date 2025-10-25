@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, X, Brain, Lightbulb, LightbulbOff } from "lucide-react";
+import { Plus, X, Lightbulb, LightbulbOff } from "lucide-react";
 
 interface ThinkingToggleProps {
   enabled: boolean;
@@ -12,8 +12,6 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
   onToggle,
   selectedModel,
 }) => {
-  const activeColor = "#0285ff";
-
   const isProModel = selectedModel.toLowerCase().includes("gemini-2.5-pro");
   const isDisabled = isProModel;
 
@@ -21,67 +19,69 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
     if (!isDisabled) onToggle();
   };
 
-  /** Button style */
   const buttonClasses = [
     "thinking-toggle group inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-full transition-all duration-200 select-none",
     isProModel
-      ? "bg-[#f5f9ff] text-[#0A84FF] cursor-default"
+      ? "text-blue-600 dark:text-blue-400 cursor-default"
       : enabled
-      ? "cursor-pointer hover:bg-[#f5f9ff]"
-      : "cursor-pointer hover:bg-gray-100",
+      ? "cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950"
+      : "cursor-pointer hover:bg-secondary",
   ].join(" ");
 
-  /** Text style */
   const textClasses = [
     "text-sm leading-none transition-colors duration-200",
     isProModel || enabled
-      ? "text-[#0285ff]"
-      : "text-gray-400 group-hover:text-gray-600",
+      ? "text-blue-600 dark:text-blue-400"
+      : "text-muted-foreground group-hover:text-secondary-foreground",
   ].join(" ");
 
-  /** Icon render logic */
   const renderIcon = () => {
     const iconProps = { size: 16, strokeWidth: 2 };
 
-    if (isProModel) return <Lightbulb {...iconProps} color={activeColor} />;
+    if (isProModel) {
+      return (
+        <Lightbulb
+          {...iconProps}
+          className="text-blue-600 dark:text-blue-400"
+        />
+      );
+    }
 
-    if (enabled)
+    if (enabled) {
       return (
         <>
           <Lightbulb
             {...iconProps}
-            color={activeColor}
-            className="block group-hover:hidden"
+            className="block group-hover:hidden text-blue-600 dark:text-blue-400"
           />
           <X
             {...iconProps}
-            color={activeColor}
-            className="hidden group-hover:block"
+            className="hidden group-hover:block text-blue-600 dark:text-blue-400"
           />
         </>
       );
+    }
 
     return (
       <>
         <LightbulbOff
           {...iconProps}
-          className="block group-hover:hidden  text-gray-400 transition-colors group-hover:text-gray-600"
+          className="block group-hover:hidden text-muted-foreground transition-colors group-hover:text-secondary-foreground"
         />
         <Plus
           {...iconProps}
-          className="hidden group-hover:block text-gray-400 transition-colors group-hover:text-gray-600"
+          className="hidden group-hover:block text-muted-foreground transition-colors group-hover:text-secondary-foreground"
         />
       </>
     );
   };
 
-  /** Icon container background */
   const iconWrapperClasses = [
     "flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200",
     !isProModel && !enabled
-      ? "group-hover:bg-gray-200"
+      ? "group-hover:bg-secondary/60"
       : !isProModel && enabled
-      ? "group-hover:bg-[#cce6ff]"
+      ? "group-hover:bg-blue-100 dark:group-hover:bg-blue-900"
       : "",
   ].join(" ");
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { I18nProvider } from "../provider/i18n-provider";
+import { ThemeProvider } from "../provider/theme-provider";
 
 export const metadata: Metadata = {
   title: "ndson",
@@ -17,10 +18,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
-      <body className="font-sans font-normal text-base text-black bg-white overflow-x-hidden antialiased">
-        <I18nProvider>{children}</I18nProvider>
-        <Toaster position="top-center" />
+    <html lang="vi" suppressHydrationWarning>
+      <body className="font-sans font-normal text-base antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+          storageKey="app_theme"
+        >
+          <I18nProvider>{children}</I18nProvider>
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              className: "dark:bg-card dark:text-foreground",
+              style: {
+                background: "var(--background)",
+                color: "var(--foreground)",
+                border: "1px solid var(--border)",
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );

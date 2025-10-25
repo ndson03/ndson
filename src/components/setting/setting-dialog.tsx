@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Eye, EyeOff, Key, Palette, Languages, Settings } from "lucide-react";
 import {
   Dialog,
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTheme } from "@/src/hooks/use-theme";
 import { useLanguage } from "@/src/hooks/use-language";
 
 interface SettingDialogProps {
@@ -33,19 +34,8 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
   onClose,
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
-  const [theme, setTheme] = useState("system");
+  const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
-
-  // Load theme preference on mount
-  useEffect(() => {
-    const storedTheme = sessionStorage.getItem("app_theme") || "system";
-    setTheme(storedTheme);
-  }, []);
-
-  // Save theme preference
-  useEffect(() => {
-    sessionStorage.setItem("app_theme", theme);
-  }, [theme]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

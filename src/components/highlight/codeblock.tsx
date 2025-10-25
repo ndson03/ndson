@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+  oneLight,
+  oneDark,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useTheme } from "@/src/hooks/use-theme";
 
 interface CodeBlockProps {
   code: string;
@@ -13,6 +17,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   language = "text",
 }) => {
   const [copied, setCopied] = useState(false);
+  const { currentTheme } = useTheme();
 
   const handleCopy = async () => {
     try {
@@ -25,14 +30,17 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     }
   };
 
+  // Chọn theme dựa trên current theme
+  const syntaxTheme = currentTheme === "dark" ? oneDark : oneLight;
+
   return (
-    <div className="relative my-4 rounded-2xl overflow-hidden">
-      <div className="flex justify-between items-center px-4 py-2 bg-[#f9f9f9] text-[#586069] text-sm">
+    <div className="relative my-4 rounded-2xl overflow-hidden border border-border">
+      <div className="flex justify-between items-center px-4 py-2 bg-secondary text-muted-foreground text-sm">
         <span className="font-semibold uppercase text-sm tracking-wide">
           {language}
         </span>
         <button
-          className="border-none cursor-pointer transition-transform duration-200 ease-in-out flex items-center gap-1 active:scale-95"
+          className="border-none cursor-pointer transition-all duration-200 ease-in-out flex items-center gap-1 active:scale-95 hover:text-foreground"
           onClick={handleCopy}
         >
           {copied ? (
@@ -48,7 +56,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       </div>
       <SyntaxHighlighter
         language={language}
-        style={oneLight}
+        style={syntaxTheme}
         customStyle={{
           margin: 0,
           borderRadius: "0 0 8px 8px",

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Key, ArrowUp, Trash2, Settings } from "lucide-react";
+import { ArrowUp, Trash2, Settings } from "lucide-react";
 import { ModelSelector } from "./model-selector";
 import { DeletePopup } from "./delete-chat-history-popup";
 import { useAutoResize } from "@/src/hooks/use-auto-resize";
@@ -122,7 +122,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-stretch sm:w-[95%] md:w-[800px] max-w-[800px] z-10 border border-black/15 rounded-2xl sm:rounded-3xl md:rounded-4xl bg-white p-1 pl-2 pr-2 pb-2 max-h-[350px] cursor-text shadow-[var(--card-shadow)] transition-all duration-300 mx-2 sm:mx-4 md:mx-0 ${
+      className={`flex flex-col items-stretch sm:w-[95%] md:w-[800px] max-w-[800px] z-10 border border-border rounded-2xl sm:rounded-3xl md:rounded-4xl bg-card p-1 pl-2 pr-2 pb-2 max-h-[350px] cursor-text shadow-[0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-300 mx-2 sm:mx-4 md:mx-0 ${
         isWelcome
           ? "fixed left-1/2 top-1/2 translate-x-[calc(-50%)] sm:translate-x-[calc(-50%-6px)] -translate-y-[30px]"
           : "fixed left-1/2 bottom-2 sm:bottom-0 translate-x-[calc(-50%)] sm:translate-x-[calc(-50%-6px)]"
@@ -136,7 +136,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         disabled={!isApiKeyReady}
-        className={`flex-1 border-none p-1.5 pl-2 pr-2 resize-none w-full transition-all duration-200 ease-in-out focus:outline-none text-sm sm:text-base ${
+        className={`flex-1 border-none p-1.5 pl-2 pr-2 resize-none w-full transition-all duration-200 ease-in-out focus:outline-none text-sm sm:text-base bg-transparent text-foreground placeholder:text-muted-foreground ${
           !isApiKeyReady ? "disabled" : ""
         }`}
         rows={1}
@@ -144,7 +144,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       <div className="flex justify-between items-center gap-1 sm:gap-2">
         <div className="flex items-center gap-0.5 sm:gap-1">
           <div
-            className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 apikey-config-button"
+            className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-primary bg-secondary hover:bg-secondary/80 active:bg-secondary/60 apikey-config-button"
             onClick={onApiKeyConfig}
           >
             <Settings size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -163,7 +163,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onModelSelect={onModelSelect}
           />
           <div
-            className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 send-button ${
+            className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-primary bg-secondary hover:bg-secondary/80 active:bg-secondary/60 send-button ${
               isSendButtonDisabled ? "opacity-50 cursor-not-allowed" : ""
             }`}
             onClick={onSendMessage}
@@ -177,7 +177,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onCancel={handleCancelDelete}
           >
             <div
-              className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 clear-button"
+              className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-primary bg-secondary hover:bg-secondary/80 active:bg-secondary/60 clear-button"
               onClick={handleDeleteClick}
             >
               <Trash2 size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
