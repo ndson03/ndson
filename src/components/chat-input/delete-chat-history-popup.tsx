@@ -4,6 +4,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "react-i18next";
 
 interface DeletePopupProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ export const DeletePopup: React.FC<DeletePopupProps> = ({
   onCancel,
   children,
 }) => {
+  const { t } = useTranslation();
+
   const handleConfirm = () => {
     onConfirm();
   };
@@ -31,20 +34,20 @@ export const DeletePopup: React.FC<DeletePopupProps> = ({
         sideOffset={8}
       >
         <div className="text-sm text-foreground mb-3 font-medium text-center">
-          Xóa toàn bộ lịch sử chat?
+          {t("messages.deleteConfirm")}
         </div>
         <div className="flex gap-2 justify-center">
           <button
             onClick={handleConfirm}
             className="px-3 py-1.5 text-xs rounded-md text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors duration-150 cursor-pointer"
           >
-            Xóa
+            {t("delete")}
           </button>
           <button
             onClick={onCancel}
             className="px-3 py-1.5 text-xs rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors duration-150 cursor-pointer"
           >
-            Hủy
+            {t("cancel")}
           </button>
         </div>
       </DropdownMenuContent>

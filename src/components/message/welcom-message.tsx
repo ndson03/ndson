@@ -10,7 +10,7 @@ export default function WelcomeMessage() {
           {t("hello")}
         </h1>
         <p className="text-xl md:text-3xl text-muted-foreground mt-6 font-light">
-          {t("welcome")}
+          {t("welcome.title")}
         </p>
       </div>
     </div>

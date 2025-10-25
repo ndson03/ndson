@@ -6,6 +6,7 @@ import {
   oneDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "@/src/hooks/use-theme";
+import { useTranslation } from "react-i18next";
 
 interface CodeBlockProps {
   code: string;
@@ -18,6 +19,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const { currentTheme } = useTheme();
+  const { t } = useTranslation();
 
   const handleCopy = async () => {
     try {
@@ -36,20 +38,18 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   return (
     <div className="relative my-4 rounded-2xl overflow-hidden border border-border">
       <div className="flex justify-between items-center px-3 py-2 bg-[var(--codeblock-header-background)] text-primative text-xs">
-        <span className="font-semibold tracking-wide">
-          {language}
-        </span>
+        <span className="font-semibold tracking-wide">{language}</span>
         <button
           className="border-none cursor-pointer transition-all duration-200 ease-in-out flex items-center gap-1 hover:text-foreground"
           onClick={handleCopy}
         >
           {copied ? (
             <>
-              <Check size={14} /> Đã sao chép
+              <Check size={14} /> {t("copied")}
             </>
           ) : (
             <>
-              <Copy size={14} /> Sao chép
+              <Copy size={14} /> {t("copy")}
             </>
           )}
         </button>

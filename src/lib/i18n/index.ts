@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import en from "../../public/locales/en/common.json";
-import vi from "../../public/locales/vi/common.json";
+import { en } from "./locales/en";
+import { vi } from "./locales/vi";
 
 i18n.use(initReactI18next).init({
   resources: {

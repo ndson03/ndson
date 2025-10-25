@@ -19,6 +19,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTheme } from "@/src/hooks/use-theme";
 import { useLanguage } from "@/src/hooks/use-language";
+import { useTranslation } from "react-i18next";
 
 interface SettingDialogProps {
   apiKey: string;
@@ -36,6 +37,7 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
   const [showApiKey, setShowApiKey] = useState(false);
   const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -43,7 +45,7 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Cài đặt
+            {t("settings.title")}
           </DialogTitle>
         </DialogHeader>
 
@@ -52,7 +54,7 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
           <div className="space-y-2">
             <Label htmlFor="apikey" className="flex items-center gap-2">
               <Key className="h-4 w-4" />
-              Gemini API Key
+              {t("settings.apiKey.label")}
             </Label>
             <div className="relative">
               <Input
@@ -60,7 +62,7 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
                 type={showApiKey ? "text" : "password"}
                 value={apiKey}
                 onChange={(e) => onApiKeyChange(e.target.value)}
-                placeholder="Nhập API key của bạn..."
+                placeholder={t("settings.apiKey.placeholder")}
                 autoComplete="off"
                 className="pr-10"
               />
@@ -70,6 +72,11 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
                 size="sm"
                 className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                 onClick={() => setShowApiKey(!showApiKey)}
+                aria-label={
+                  showApiKey
+                    ? t("settings.apiKey.hide")
+                    : t("settings.apiKey.show")
+                }
               >
                 {showApiKey ? (
                   <EyeOff className="h-4 w-4" />
@@ -83,24 +90,22 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
           {/* Guide */}
           <Alert>
             <AlertDescription className="text-sm">
-              <h4 className="font-medium mb-2">
-                Hướng dẫn lấy Gemini API Key:
-              </h4>
+              <h4 className="font-medium mb-2">{t("settings.guide.title")}</h4>
               <ol className="space-y-1 text-muted-foreground">
                 <li>
-                  1. Truy cập{" "}
+                  1. {t("settings.guide.step1")}{" "}
                   <a
                     href="https://aistudio.google.com/app/apikey"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline hover:text-foreground"
                   >
-                    Google AI Studio
+                    {t("settings.guide.step1Link")}
                   </a>
                 </li>
-                <li>2. Đăng nhập bằng tài khoản Google</li>
-                <li>3. Nhấn "Create API Key"</li>
-                <li>4. Sao chép và dán API key vào đây</li>
+                <li>2. {t("settings.guide.step2")}</li>
+                <li>3. {t("settings.guide.step3")}</li>
+                <li>4. {t("settings.guide.step4")}</li>
               </ol>
             </AlertDescription>
           </Alert>
@@ -109,16 +114,20 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
           <div className="flex items-center justify-between">
             <Label htmlFor="theme" className="flex items-center gap-2">
               <Palette className="h-4 w-4" />
-              Giao diện
+              {t("settings.theme.label")}
             </Label>
             <Select value={theme} onValueChange={setTheme}>
               <SelectTrigger id="theme" className="w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Sáng</SelectItem>
-                <SelectItem value="dark">Tối</SelectItem>
-                <SelectItem value="system">Hệ thống</SelectItem>
+                <SelectItem value="light">
+                  {t("settings.theme.light")}
+                </SelectItem>
+                <SelectItem value="dark">{t("settings.theme.dark")}</SelectItem>
+                <SelectItem value="system">
+                  {t("settings.theme.system")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -127,15 +136,15 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
           <div className="flex items-center justify-between">
             <Label htmlFor="language" className="flex items-center gap-2">
               <Languages className="h-4 w-4" />
-              Ngôn ngữ
+              {t("settings.language.label")}
             </Label>
             <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger id="language" className="w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="vi">Tiếng Việt</SelectItem>
-                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="vi">{t("settings.language.vi")}</SelectItem>
+                <SelectItem value="en">{t("settings.language.en")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

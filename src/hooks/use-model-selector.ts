@@ -1,21 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Model } from "../types";
 
-export const DEFAULT_MODELS: Model[] = [
+const BASE_MODELS = [
   {
     id: "gemini-2.5-flash-lite",
     name: "2.5 Flash-Lite",
-    description: "Nhẹ, tốc độ cao",
+    descriptionKey: "models.flashLite",
   },
   {
     id: "gemini-2.5-flash",
     name: "2.5 Flash",
-    description: "Trợ giúp nhanh toàn diện",
+    descriptionKey: "models.flash",
   },
   {
     id: "gemini-2.5-pro",
     name: "2.5 Pro",
-    description: "Suy luận, giải toán và lập trình",
+    descriptionKey: "models.pro",
   },
 ];
 
@@ -48,9 +49,17 @@ const storeModel = (modelId: string): void => {
 };
 
 export const useModelSelector = () => {
+  const { t } = useTranslation();
   const [selectedModelId, setSelectedModelId] = useState<string>(() =>
     getStoredModel(INITIAL_DEFAULT_MODEL_ID)
   );
+
+  // Transform base models with translations
+  const models: Model[] = BASE_MODELS.map((model) => ({
+    id: model.id,
+    name: model.name,
+    description: t(model.descriptionKey),
+  }));
 
   const handleModelSelect = useCallback((modelId: string) => {
     setSelectedModelId(modelId);
@@ -59,9 +68,7 @@ export const useModelSelector = () => {
 
   useEffect(() => {
     const storedModel = getStoredModel(INITIAL_DEFAULT_MODEL_ID);
-    const isValidModel = DEFAULT_MODELS.some(
-      (model) => model.id === storedModel
-    );
+    const isValidModel = BASE_MODELS.some((model) => model.id === storedModel);
 
     if (!isValidModel) {
       setSelectedModelId(INITIAL_DEFAULT_MODEL_ID);
@@ -71,12 +78,12 @@ export const useModelSelector = () => {
     }
   }, [selectedModelId]);
 
-  const selectedModel = DEFAULT_MODELS.find((m) => m.id === selectedModelId);
+  const selectedModel = models.find((m) => m.id === selectedModelId);
 
   return {
     selectedModelId,
     selectedModel,
-    models: DEFAULT_MODELS,
+    models,
     handleModelSelect,
   };
 };

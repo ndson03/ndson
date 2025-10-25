@@ -8,6 +8,7 @@ import React, {
   useRef,
 } from "react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 import { useApiKey } from "../hooks/use-api-key";
 import { useScrollToBottom } from "../hooks/use-scroll-to-bottom";
@@ -33,6 +34,7 @@ export default function ChatPage() {
 
   const isInitialLoad = useRef(true);
 
+  const { t } = useTranslation();
   const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
   const { selectedModelId, selectedModel, models, handleModelSelect } =
     useModelSelector();
@@ -117,7 +119,7 @@ export default function ChatPage() {
 
       toast.error(errorMessage);
     }
-  }, [isApiKeyReady, input, isLoading, sendMessage, messages.length]);
+  }, [isApiKeyReady, input, isLoading, sendMessage, messages.length, t]);
 
   const handleClearHistory = useCallback(async () => {
     try {
@@ -134,12 +136,12 @@ export default function ChatPage() {
           }
         }, 100);
       } else {
-        alert(MESSAGES.DELETE_ERROR);
+        alert(t("messages.deleteError"));
       }
     } catch (error) {
-      alert(MESSAGES.DELETE_ERROR);
+      alert(t("messages.deleteError"));
     }
-  }, [clearChatHistory, clearMessages, inputRef, isApiKeyReady]);
+  }, [clearChatHistory, clearMessages, inputRef, isApiKeyReady, t]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -153,10 +155,8 @@ export default function ChatPage() {
 
   const placeholderText = useMemo(
     () =>
-      isApiKeyReady
-        ? "Hỏi bất kỳ điều gì"
-        : "Vui lòng cấu hình API key để bắt đầu chat",
-    [isApiKeyReady]
+      isApiKeyReady ? t("input.placeholder") : t("input.placeholderNoKey"),
+    [isApiKeyReady, t]
   );
 
   const renderedMessages = useMemo(
