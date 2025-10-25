@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, X, Brain } from "lucide-react";
+import { Plus, X, Brain, Lightbulb, LightbulbOff } from "lucide-react";
 
 interface ThinkingToggleProps {
   enabled: boolean;
@@ -43,12 +43,12 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
   const renderIcon = () => {
     const iconProps = { size: 16, strokeWidth: 2 };
 
-    if (isProModel) return <Brain {...iconProps} color={activeColor} />;
+    if (isProModel) return <Lightbulb {...iconProps} color={activeColor} />;
 
     if (enabled)
       return (
         <>
-          <Brain
+          <Lightbulb
             {...iconProps}
             color={activeColor}
             className="block group-hover:hidden"
@@ -62,10 +62,16 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
       );
 
     return (
-      <Plus
-        {...iconProps}
-        className="text-gray-400 transition-colors group-hover:text-gray-600"
-      />
+      <>
+        <LightbulbOff
+          {...iconProps}
+          className="block group-hover:hidden  text-gray-400 transition-colors group-hover:text-gray-600"
+        />
+        <Plus
+          {...iconProps}
+          className="hidden group-hover:block text-gray-400 transition-colors group-hover:text-gray-600"
+        />
+      </>
     );
   };
 
