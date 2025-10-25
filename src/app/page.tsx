@@ -102,7 +102,7 @@ export default function ChatPage() {
     }
 
     const question = input.trim();
-    if (!question || isLoading) return;
+    if (!question || isLoading || isMessageStreaming) return;
 
     setInput("");
     setIsWelcome(false);
@@ -119,7 +119,15 @@ export default function ChatPage() {
 
       toast.error(errorMessage);
     }
-  }, [isApiKeyReady, input, isLoading, sendMessage, messages.length, t]);
+  }, [
+    isApiKeyReady,
+    input,
+    isLoading,
+    isMessageStreaming,
+    sendMessage,
+    messages.length,
+    t,
+  ]);
 
   const handleClearHistory = useCallback(async () => {
     try {
@@ -207,7 +215,7 @@ export default function ChatPage() {
         onApiKeyConfig={() => setShowApiKeyModal(true)}
         onClearHistory={handleClearHistory}
         isApiKeyReady={isApiKeyReady}
-        isLoading={isLoading}
+        isLoading={isLoading || isMessageStreaming}
         placeholder={placeholderText}
         isWelcome={isWelcome}
         setInputRef={setInputRef}
