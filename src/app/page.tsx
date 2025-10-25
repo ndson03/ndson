@@ -20,7 +20,7 @@ import { MESSAGES } from "../constants";
 
 import { ChatMessage } from "../components/message/chat-message";
 import WelcomeMessage from "../components/message/welcom-message";
-import ApiKeyForm from "../components/setting/setting-dialog";
+import SettingDialog from "../components/setting/setting-dialog";
 import { ChatInput } from "../components/chat-input/chat-input";
 import { LoadingMessage } from "../components/message/loading-message";
 import { ScrollToBottomButton } from "../components/button/scroll-to-bottom-button";
@@ -94,7 +94,7 @@ export default function ChatPage() {
   }, [messages.length, scrollToBottom]);
 
   const handleSendMessage = useCallback(async () => {
-    if (!isApiKeyReady || !apiKey.trim()) {
+    if (!isApiKeyReady) {
       alert(MESSAGES.API_KEY_REQUIRED);
       return;
     }
@@ -117,9 +117,8 @@ export default function ChatPage() {
 
       toast.error(errorMessage);
     }
-  }, [isApiKeyReady, apiKey, input, isLoading, sendMessage, messages.length]);
+  }, [isApiKeyReady, input, isLoading, sendMessage, messages.length]);
 
-  // Handle clear history
   const handleClearHistory = useCallback(async () => {
     try {
       const success = await clearChatHistory();
@@ -142,7 +141,6 @@ export default function ChatPage() {
     }
   }, [clearChatHistory, clearMessages, inputRef, isApiKeyReady]);
 
-  // Handle keyboard shortcuts
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -153,7 +151,6 @@ export default function ChatPage() {
     [handleSendMessage]
   );
 
-  // Computed values
   const placeholderText = useMemo(
     () =>
       isApiKeyReady
@@ -187,8 +184,9 @@ export default function ChatPage() {
     >
       {isWelcome && <WelcomeMessage />}
 
-      <ApiKeyForm
-        onApiKeySet={setApiKey}
+      <SettingDialog
+        apiKey={apiKey}
+        onApiKeyChange={setApiKey}
         isOpen={showApiKeyModal}
         onClose={() => setShowApiKeyModal(false)}
       />

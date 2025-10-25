@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Eye,
-  EyeOff,
-  Key,
-  Palette,
-  Languages,
-  Settings,
-  Settings2,
-} from "lucide-react";
+import { Eye, EyeOff, Key, Palette, Languages, Settings } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,61 +19,36 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SettingDialogProps {
-  onApiKeySet: (apiKey: string) => void;
+  apiKey: string;
+  onApiKeyChange: (apiKey: string) => void;
   isOpen: boolean;
   onClose: () => void;
 }
 
 const SettingDialog: React.FC<SettingDialogProps> = ({
-  onApiKeySet,
+  apiKey,
+  onApiKeyChange,
   isOpen,
   onClose,
 }) => {
-  const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [theme, setTheme] = useState("system");
   const [language, setLanguage] = useState("vi");
 
+  // Load preferences on mount
   useEffect(() => {
-    // Load API key from session storage
-    const storedApiKey = sessionStorage.getItem("gemini_api_key") || "";
     const storedTheme = sessionStorage.getItem("app_theme") || "system";
     const storedLanguage = sessionStorage.getItem("app_language") || "vi";
-
-    if (storedApiKey.trim() !== "") {
-      setApiKey(storedApiKey);
-      onApiKeySet(storedApiKey);
-    }
-
     setTheme(storedTheme);
     setLanguage(storedLanguage);
-  }, [onApiKeySet]);
+  }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      const currentKey = sessionStorage.getItem("gemini_api_key") || "";
-      setApiKey(currentKey);
-    }
-  }, [isOpen]);
-
-  // Auto-save API key
-  useEffect(() => {
-    const trimmedKey = apiKey.trim();
-    if (trimmedKey !== "") {
-      sessionStorage.setItem("gemini_api_key", trimmedKey);
-      onApiKeySet(trimmedKey);
-    } else {
-      sessionStorage.removeItem("gemini_api_key");
-      onApiKeySet("");
-    }
-  }, [apiKey, onApiKeySet]);
-
-  // Auto-save theme
+  // Save theme preference
   useEffect(() => {
     sessionStorage.setItem("app_theme", theme);
   }, [theme]);
 
-  // Auto-save language
+  // Save language preference
   useEffect(() => {
     sessionStorage.setItem("app_language", language);
   }, [language]);
@@ -108,7 +75,7 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
                 id="apikey"
                 type={showApiKey ? "text" : "password"}
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(e) => onApiKeyChange(e.target.value)}
                 placeholder="Nhập API key của bạn..."
                 autoComplete="off"
                 className="pr-10"
