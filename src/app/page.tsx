@@ -31,8 +31,7 @@ export default function ChatPage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [isWelcome, setIsWelcome] = useState(false);
   const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
-
-  const isInitialLoad = useRef(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { t } = useTranslation();
   const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
@@ -85,15 +84,13 @@ export default function ChatPage() {
     initializeApp();
   }, [isDBInitialized, loadChatHistory, setMessages]);
 
-  // Auto-scroll on new messages
+  // Auto scroll to bottom when messages are loaded initially
   useEffect(() => {
-    if (isInitialLoad.current && messages.length > 0) {
-      scrollToBottom(250);
-      isInitialLoad.current = false;
-    } else {
-      scrollToBottom();
+    if (isInitialLoad && messages.length > 0) {
+      scrollToBottom(0);
+      setIsInitialLoad(false);
     }
-  }, [messages.length, scrollToBottom]);
+  }, [messages, isInitialLoad, scrollToBottom]);
 
   const handleSendMessage = useCallback(async () => {
     if (!isApiKeyReady) {
@@ -108,6 +105,7 @@ export default function ChatPage() {
     setIsWelcome(false);
 
     try {
+      scrollToBottom();
       await sendMessage(question);
     } catch (error: any) {
       const errorMessage = handleApiError(error);
@@ -136,8 +134,7 @@ export default function ChatPage() {
       if (success) {
         clearMessages();
         setIsWelcome(true);
-        isInitialLoad.current = true;
-
+        setIsInitialLoad(true); // Reset initial load state
         setTimeout(() => {
           if (inputRef && isApiKeyReady) {
             inputRef.focus();
