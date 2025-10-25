@@ -26,7 +26,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
   return (
     <button
       onClick={handleCopy}
-      className="mt-1 px-2 py-2 rounded-full border-none cursor-pointer transition-all duration-200 ease-in-out flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-95"
+      className="mt-1 px-2 py-2 rounded-full border-none cursor-pointer transition-all duration-200 ease-in-out flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary"
     >
       {copied ? <Check size={size} /> : <Copy size={size} />}
     </button>
