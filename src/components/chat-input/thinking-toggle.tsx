@@ -1,6 +1,5 @@
 import React from "react";
 import { Plus, X, Lightbulb, LightbulbOff } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 interface ThinkingToggleProps {
   enabled: boolean;
@@ -13,7 +12,6 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
   onToggle,
   selectedModel,
 }) => {
-  const { t } = useTranslation();
   const isProModel = selectedModel.toLowerCase().includes("gemini-2.5-pro");
   const isDisabled = isProModel;
 
@@ -27,14 +25,14 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
       ? "text-blue-600 dark:text-blue-400 cursor-default"
       : enabled
       ? "cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950"
-      : "cursor-pointer hover:bg-secondary",
+      : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800",
   ].join(" ");
 
   const textClasses = [
-    "text-sm leading-none transition-colors duration-200",
+    "text-sm leading-none transition-colors duration-200 hidden md:inline-block",
     isProModel || enabled
       ? "text-blue-600 dark:text-blue-400"
-      : "text-muted-foreground group-hover:text-secondary-foreground",
+      : "text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100",
   ].join(" ");
 
   const renderIcon = () => {
@@ -68,11 +66,11 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
       <>
         <LightbulbOff
           {...iconProps}
-          className="block group-hover:hidden text-muted-foreground transition-colors group-hover:text-secondary-foreground"
+          className="block group-hover:hidden text-gray-600 dark:text-gray-400 transition-colors group-hover:text-gray-900 dark:group-hover:text-gray-100"
         />
         <Plus
           {...iconProps}
-          className="hidden group-hover:block text-muted-foreground transition-colors group-hover:text-secondary-foreground"
+          className="hidden group-hover:block text-gray-600 dark:text-gray-400 transition-colors group-hover:text-gray-900 dark:group-hover:text-gray-100"
         />
       </>
     );
@@ -81,7 +79,7 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
   const iconWrapperClasses = [
     "flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200",
     !isProModel && !enabled
-      ? "group-hover:bg-secondary/60"
+      ? "group-hover:bg-gray-200 dark:group-hover:bg-gray-700"
       : !isProModel && enabled
       ? "group-hover:bg-blue-100 dark:group-hover:bg-blue-900"
       : "",
@@ -95,7 +93,7 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
       aria-pressed={enabled}
     >
       <div className={iconWrapperClasses}>{renderIcon()}</div>
-      <span className={textClasses}>{t("buttons.thinkingMode")}</span>
+      <span className={textClasses}>Thinking Mode</span>
     </button>
   );
 };

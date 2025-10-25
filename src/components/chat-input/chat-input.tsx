@@ -122,10 +122,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-stretch sm:w-[95%] md:w-[800px] max-w-[800px] z-10 border border-border rounded-2xl sm:rounded-3xl md:rounded-4xl bg-card p-1 pl-2 pr-2 pb-2 max-h-[350px] cursor-text shadow-[0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-300 mx-2 sm:mx-4 md:mx-0 ${
+      className={`flex flex-col items-stretch w-[90vw] sm:w-[80vw] md:w-[800px] max-w-[800px] z-10 border border-border rounded-4xl bg-card p-1 pl-2 pr-2 pb-2 max-h-[350px] cursor-text shadow-[0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-300 mx-0 sm:mx-0 md:mx-0 ${
         isWelcome
-          ? "fixed left-1/2 top-1/2 translate-x-[calc(-50%)] sm:translate-x-[calc(-50%-6px)] -translate-y-[30px]"
-          : "fixed left-1/2 bottom-2 sm:bottom-0 translate-x-[calc(-50%)] sm:translate-x-[calc(-50%-6px)]"
+          ? "fixed left-1/2 top-1/2 translate-x-[calc(-50%-5px)] -translate-y-[30px]"
+          : "fixed left-1/2 bottom-1 translate-x-[calc(-50%-5px)]"
       }`}
       onClick={handleChatInputContainerClick}
     >
