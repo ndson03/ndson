@@ -167,7 +167,9 @@ export default function ChatPage() {
             key={`${index}-${message.timestamp}`}
             message={message}
             index={index}
-            isMessageStreaming={isMessageStreaming}
+            isMessageStreaming={
+              isMessageStreaming && index === messages.length - 1
+            }
           />
         ))}
         {isLoading && <LoadingMessage />}
