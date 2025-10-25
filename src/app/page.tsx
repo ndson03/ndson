@@ -178,7 +178,7 @@ export default function ChatPage() {
 
   return (
     <div
-      className={`pt-4 sm:pt-6 md:pt-8 pb-[300px] transition-all duration-300 overflow-y-scroll h-[100vh] w-full px-2 sm:px-4`}
+      className={`pt-4 sm:pt-6 md:pt-8 pb-[300px] transition-all duration-300 overflow-y-scroll h-[96vh] w-full px-2 sm:px-4`}
       style={{ scrollbarGutter: "stable" }}
       ref={containerRef}
     >
@@ -191,7 +191,7 @@ export default function ChatPage() {
         onClose={() => setShowApiKeyModal(false)}
       />
 
-      <div className="container mx-auto">
+      <div className="container mx-auto ">
         <div className="flex flex-col h-full overflow-hidden relative w-full sm:w-[95%] md:w-[800px] mx-auto">
           <div className="flex-1 flex flex-col">{renderedMessages}</div>
         </div>
