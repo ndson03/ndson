@@ -20,7 +20,7 @@ export const useScrollToBottom = () => {
     if (!container) return;
     const { scrollTop, scrollHeight, clientHeight } = container;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    setShowScrollButton(distanceFromBottom > 220);
+    setShowScrollButton(distanceFromBottom > 270);
   }, []);
 
   useEffect(() => {

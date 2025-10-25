@@ -88,7 +88,7 @@ export default function ChatPage() {
   // Auto-scroll on new messages
   useEffect(() => {
     if (isInitialLoad.current && messages.length > 0) {
-      scrollToBottom(220);
+      scrollToBottom(250);
       isInitialLoad.current = false;
     } else {
       scrollToBottom();
@@ -218,7 +218,7 @@ export default function ChatPage() {
       />
 
       <ScrollToBottomButton
-        onClick={() => scrollToBottom(220)}
+        onClick={() => scrollToBottom(250)}
         isVisible={showScrollButton}
       />
     </div>
