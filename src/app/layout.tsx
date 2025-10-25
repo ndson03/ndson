@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { I18nProvider } from "../provider/i18n-provider";
 
 export const metadata: Metadata = {
   title: "ndson",
@@ -18,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className="font-sans font-normal text-base text-black bg-white overflow-x-hidden antialiased">
-        {children}
+        <I18nProvider>{children}</I18nProvider>
         <Toaster position="top-center" />
       </body>
     </html>

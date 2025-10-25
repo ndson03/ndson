@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useLanguage } from "@/src/hooks/use-language";
 
 interface SettingDialogProps {
   apiKey: string;
@@ -33,25 +34,18 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [theme, setTheme] = useState("system");
-  const [language, setLanguage] = useState("vi");
+  const { language, setLanguage } = useLanguage();
 
-  // Load preferences on mount
+  // Load theme preference on mount
   useEffect(() => {
     const storedTheme = sessionStorage.getItem("app_theme") || "system";
-    const storedLanguage = sessionStorage.getItem("app_language") || "vi";
     setTheme(storedTheme);
-    setLanguage(storedLanguage);
   }, []);
 
   // Save theme preference
   useEffect(() => {
     sessionStorage.setItem("app_theme", theme);
   }, [theme]);
-
-  // Save language preference
-  useEffect(() => {
-    sessionStorage.setItem("app_language", language);
-  }, [language]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
