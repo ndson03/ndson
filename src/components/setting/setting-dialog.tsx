@@ -1,6 +1,14 @@
 "use client";
-import React, { useState } from "react";
-import { Eye, EyeOff, Key, Palette, Languages, Settings } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  Eye,
+  EyeOff,
+  Key,
+  Palette,
+  Languages,
+  Settings,
+  Save,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +29,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTheme } from "@/src/hooks/use-theme";
 import { useLanguage } from "@/src/hooks/use-language";
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 
 interface SettingDialogProps {
   apiKey: string;
@@ -36,9 +45,19 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
   onClose,
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState(apiKey);
   const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    setTempApiKey(apiKey);
+  }, [apiKey, isOpen]);
+
+  const handleSaveApiKey = () => {
+    onApiKeyChange(tempApiKey);
+    toast.success(t("messages.apiKeySaved"));
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -57,33 +76,42 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
               <Key className="h-4 w-4" />
               {t("settings.apiKey.label")}
             </Label>
-            <div className="relative">
-              <Input
-                id="apikey"
-                type={showApiKey ? "text" : "password"}
-                value={apiKey}
-                onChange={(e) => onApiKeyChange(e.target.value)}
-                placeholder={t("settings.apiKey.placeholder")}
-                autoComplete="off"
-                className="pr-10"
-              />
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  id="apikey"
+                  type={showApiKey ? "text" : "password"}
+                  value={tempApiKey}
+                  onChange={(e) => setTempApiKey(e.target.value)}
+                  placeholder={t("settings.apiKey.placeholder")}
+                  autoComplete="off"
+                  autoFocus={false}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  aria-label={
+                    showApiKey
+                      ? t("settings.apiKey.hide")
+                      : t("settings.apiKey.show")
+                  }
+                >
+                  {showApiKey ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                onClick={() => setShowApiKey(!showApiKey)}
-                aria-label={
-                  showApiKey
-                    ? t("settings.apiKey.hide")
-                    : t("settings.apiKey.show")
-                }
+                onClick={handleSaveApiKey}
+                className="text-primary bg-secondary hover:bg-secondary/80 active:bg-secondary/60"
               >
-                {showApiKey ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                <Save />
               </Button>
             </div>
           </div>

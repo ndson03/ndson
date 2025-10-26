@@ -64,6 +64,7 @@ export const vi = {
     deleteError: "Có lỗi xảy ra khi xóa lịch sử chat",
     loadError: "Không thể tải lịch sử chat",
     sendError: "Có lỗi xảy ra khi gửi tin nhắn",
+    apiKeySaved: "Đã lưu API key thành công",
   },
 
   // Buttons

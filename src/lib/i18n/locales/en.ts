@@ -63,6 +63,7 @@ export const en = {
     deleteError: "An error occurred while deleting chat history",
     loadError: "Failed to load chat history",
     sendError: "An error occurred while sending message",
+    apiKeySaved: "API key saved successfully",
   },
 
   // Buttons
