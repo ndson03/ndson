@@ -1,8 +1,9 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
+import { RefObject } from "react";
 
-export const useAutoResize = () => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+export const useAutoResize = (
+  textareaRef: RefObject<HTMLTextAreaElement | null>
+) => {
   const autoResize = useCallback(() => {
     if (!textareaRef.current) return;
 
@@ -19,10 +20,9 @@ export const useAutoResize = () => {
     const parentPadding = parent.offsetHeight - textarea.offsetHeight;
     const newParentHeight = newHeight + parentPadding;
     parent.style.height = `${Math.min(newParentHeight, 350)}px`;
-  }, []);
+  }, [textareaRef]);
 
   return {
-    textareaRef,
     autoResize,
   };
 };

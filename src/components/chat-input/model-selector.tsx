@@ -43,7 +43,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64" sideOffset={8}>
+      <DropdownMenuContent align="start" className="w-64 model-selector" sideOffset={8}>
         {models.map((model) => (
           <DropdownMenuItem
             key={model.id}

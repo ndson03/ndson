@@ -29,7 +29,6 @@ import { useSettings } from "../provider/setting-provider";
 export default function ChatPage() {
   const [input, setInput] = useState("");
   const [isWelcome, setIsWelcome] = useState(false);
-  const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { t } = useTranslation();
@@ -131,19 +130,13 @@ export default function ChatPage() {
       if (success) {
         clearMessages();
         setIsWelcome(true);
-        setIsInitialLoad(true);
-        setTimeout(() => {
-          if (inputRef && isApiKeyReady) {
-            inputRef.focus();
-          }
-        }, 100);
       } else {
         alert(t("messages.deleteError"));
       }
     } catch (error) {
       alert(t("messages.deleteError"));
     }
-  }, [clearChatHistory, clearMessages, inputRef, isApiKeyReady, t]);
+  }, [clearChatHistory, clearMessages, isApiKeyReady, t]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -196,7 +189,6 @@ export default function ChatPage() {
         onClearHistory={handleClearHistory}
         isLoading={isLoading || isMessageStreaming}
         isWelcome={isWelcome}
-        setInputRef={setInputRef}
         isThinking={isThinking}
         onThinkingToggle={toggleThinking}
         selectedModelId={selectedModelId}

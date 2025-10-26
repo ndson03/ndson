@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { ArrowUp, Trash2, Settings } from "lucide-react";
 import { ModelSelector } from "./model-selector";
 import { DeletePopup } from "./delete-chat-history-popup";
@@ -16,7 +22,6 @@ interface ChatInputProps {
   onClearHistory: () => void;
   isLoading: boolean;
   isWelcome: boolean;
-  setInputRef?: (ref: HTMLTextAreaElement | null) => void;
   isThinking: boolean;
   onThinkingToggle: () => void;
   selectedModelId: string;
@@ -33,7 +38,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onClearHistory,
   isLoading,
   isWelcome,
-  setInputRef,
   isThinking,
   onThinkingToggle,
   selectedModelId,
@@ -44,18 +48,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const { t } = useTranslation();
   const { isReady: isApiKeyReady, openSettings } = useSettings();
 
-  const { textareaRef, autoResize } = useAutoResize();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { autoResize } = useAutoResize(textareaRef);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-
-  const textareaCallbackRef = useCallback(
-    (node: HTMLTextAreaElement | null) => {
-      textareaRef.current = node;
-      if (setInputRef) {
-        setInputRef(node);
-      }
-    },
-    [setInputRef, textareaRef]
-  );
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -83,6 +78,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     [textareaRef]
   );
 
+  const handleSendMessage = () => {
+    onSendMessage();
+
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
+  };
+
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowDeletePopup(true);
@@ -91,10 +94,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const handleConfirmDelete = () => {
     onClearHistory();
     setShowDeletePopup(false);
+
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
   };
 
   const handleCancelDelete = () => {
     setShowDeletePopup(false);
+
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
   };
 
   useEffect(() => {
@@ -109,9 +120,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   useEffect(() => {
     if (textareaRef.current && isApiKeyReady) {
-      textareaRef.current.focus();
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 200);
     }
-  }, [isApiKeyReady, textareaRef]);
+  }, [selectedModelId, isApiKeyReady, isThinking]);
 
   useEffect(() => {
     autoResize();
@@ -129,7 +142,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       onClick={handleChatInputContainerClick}
     >
       <textarea
-        ref={textareaCallbackRef}
+        ref={textareaRef}
         value={input}
         onChange={handleInputChange}
         onKeyDown={onKeyDown}
@@ -167,7 +180,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-primary bg-secondary hover:bg-secondary/80 active:bg-secondary/60 send-button ${
               isSendButtonDisabled ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            onClick={onSendMessage}
+            onClick={handleSendMessage}
           >
             <ArrowUp size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
