@@ -35,10 +35,10 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem("gemini_api_key") || "";
-    if (storedApiKey.trim() !== "") {
-      setApiKey(storedApiKey);
-      setIsReady(true);
-    }
+    const trimmedKey = storedApiKey.trim();
+
+    setApiKey(trimmedKey);
+    setIsReady(trimmedKey !== "");
   }, []);
 
   const setKey = useCallback((key: string) => {

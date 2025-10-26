@@ -90,7 +90,7 @@ export default function ChatPage() {
 
   const handleSendMessage = useCallback(async () => {
     if (!isApiKeyReady) {
-      alert(MESSAGES.API_KEY_REQUIRED);
+      toast.error(MESSAGES.API_KEY_REQUIRED);
       return;
     }
 
