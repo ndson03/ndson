@@ -84,7 +84,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (isInitialLoad && messages.length > 0) {
-      scrollToBottom(0);
+      scrollToBottom(250);
       setIsInitialLoad(false);
     }
   }, [messages, isInitialLoad, scrollToBottom]);
