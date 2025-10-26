@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-import { ChevronDown, Check } from "lucide-react";
+import React from "react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Model } from "@/src/types";
 
 interface ModelSelectorProps {
@@ -22,40 +21,21 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   models,
   onModelSelect,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 sm:h-8 px-2 rounded-full hover:bg-secondary text-muted-foreground font-medium model-selector"
-        >
+    <Select value={selectedModelId} onValueChange={onModelSelect}>
+      <SelectTrigger className="shadow-none rounded-full border-0 bg- hover:bg-secondary focus:ring-0 focus:ring-offset-0 [&>svg]:transition-transform [&>svg]:duration-200 data-[state=open]:[&>svg]:rotate-180">
+        <SelectValue>
           <span className="text-sm">
             {selectedModel?.name || selectedModelId}
           </span>
-          <ChevronDown
-            size={14}
-            className={`ml-1 transition-transform ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64 model-selector" sideOffset={8}>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent className="w-64" align="start">
         {models.map((model) => (
-          <DropdownMenuItem
+          <SelectItem
             key={model.id}
-            onClick={() => {
-              onModelSelect(model.id);
-              setIsOpen(false);
-            }}
-            className={`flex flex-row items-center justify-between cursor-pointer ${
-              selectedModelId === model.id
-                ? "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400"
-                : ""
-            }`}
+            value={model.id}
+            className="cursor-pointer"
           >
             <div className="flex flex-col items-start">
               <span className="font-medium text-sm">{model.name}</span>
@@ -65,15 +45,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 </span>
               )}
             </div>
-            {selectedModelId === model.id && (
-              <Check
-                size={16}
-                className="text-blue-700 dark:text-blue-400 flex-shrink-0 ml-2"
-              />
-            )}
-          </DropdownMenuItem>
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SelectContent>
+    </Select>
   );
 };

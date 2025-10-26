@@ -122,13 +122,13 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="system">
+                  {t("settings.theme.system")}
+                </SelectItem>
                 <SelectItem value="light">
                   {t("settings.theme.light")}
                 </SelectItem>
                 <SelectItem value="dark">{t("settings.theme.dark")}</SelectItem>
-                <SelectItem value="system">
-                  {t("settings.theme.system")}
-                </SelectItem>
               </SelectContent>
             </Select>
           </div>
