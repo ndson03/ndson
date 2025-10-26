@@ -58,17 +58,19 @@ export const useChat = ({
 
       animationFrameRef.current = requestAnimationFrame(animateText);
     } else {
+      // KHÔNG tắt isMessageStreaming ở đây nữa
+      // Chỉ dừng animation frame
       animationFrameRef.current = null;
-      setIsMessageStreaming(false);
     }
   }, [updateLastMessage]);
 
   const startTextAnimation = useCallback(
     (text: string) => {
       targetTextRef.current = text;
-      setIsMessageStreaming(true);
 
-      if (animationFrameRef.current === null) {
+      // QUAN TRỌNG: Đảm bảo isMessageStreaming = true NGAY LẬP TỨC
+      if (!animationFrameRef.current) {
+        setIsMessageStreaming(true);
         animateText();
       }
     },
@@ -86,6 +88,7 @@ export const useChat = ({
       currentIndexRef.current = targetTextRef.current.length;
     }
 
+    // CHỈ tắt isMessageStreaming khi thực sự kết thúc hoàn toàn
     setIsMessageStreaming(false);
   }, [updateLastMessage]);
 
@@ -102,10 +105,15 @@ export const useChat = ({
       const userMessage = createMessage(true, question);
       addMessage(userMessage);
       setIsLoading(true);
+      // Set streaming = true NGAY từ đầu
+      setIsMessageStreaming(true);
 
       currentIndexRef.current = 0;
       targetTextRef.current = "";
-      stopTextAnimation();
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
 
       try {
         const chatHistory = await buildChatHistoryForAPI();
@@ -148,6 +156,7 @@ export const useChat = ({
         throw error;
       } finally {
         setIsLoading(false);
+        setIsMessageStreaming(false);
       }
     },
     [
@@ -158,7 +167,6 @@ export const useChat = ({
       buildChatHistoryForAPI,
       saveMessageToHistory,
       addMessage,
-      updateLastMessage,
       removeLastMessages,
       startTextAnimation,
       stopTextAnimation,

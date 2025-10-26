@@ -130,8 +130,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     autoResize();
   }, [input, autoResize]);
 
-  const isSendButtonDisabled = isLoading || !isApiKeyReady;
-
   return (
     <div
       className={`flex flex-col items-stretch w-[90vw] sm:w-[80vw] md:w-[800px] max-w-[800px] z-10 border border-border rounded-4xl bg-card p-1 pl-2 pr-2 pb-2 max-h-[350px] cursor-text shadow-[0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-300 mx-0 sm:mx-0 md:mx-0 ${
@@ -177,8 +175,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onModelSelect={onModelSelect}
           />
           <div
-            className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-primary bg-secondary hover:bg-secondary/80 active:bg-secondary/60 send-button ${
-              isSendButtonDisabled ? "opacity-50 cursor-not-allowed" : ""
+            className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-colors duration-200 ease-in-out text-primary bg-secondary hover:bg-secondary/80 active:bg-secondary/60 send-button ${
+              isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
             }`}
             onClick={handleSendMessage}
           >

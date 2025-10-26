@@ -6,13 +6,13 @@ import { BotMessage } from "./bot-message";
 interface ChatMessageProps {
   message: Message;
   index: number;
-  isMessageStreaming: boolean;
+  isLoading: boolean;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
   message,
   index,
-  isMessageStreaming,
+  isLoading,
 }) => {
   if (message.isUser) {
     return (
@@ -23,7 +23,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   return (
     <BotMessage
       content={message.content}
-      isMessageStreaming={isMessageStreaming}
+      isLoading={isLoading}
       timestamp={message.timestamp}
     />
   );

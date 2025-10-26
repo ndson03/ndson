@@ -7,12 +7,12 @@ import { GeminiIcon } from "./gemini-icon";
 interface BotMessageProps {
   content: string;
   timestamp: string;
-  isMessageStreaming: boolean;
+  isLoading: boolean;
 }
 
 export const BotMessage: React.FC<BotMessageProps> = ({
   content,
-  isMessageStreaming,
+  isLoading,
 }) => {
   return (
     <div className="w-full mb-4">
@@ -21,7 +21,7 @@ export const BotMessage: React.FC<BotMessageProps> = ({
         <MarkdownRenderer content={content} />
       </div>
 
-      {!isMessageStreaming && <CopyButton content={content} />}
+      {!isLoading && <CopyButton content={content} />}
     </div>
   );
 };
