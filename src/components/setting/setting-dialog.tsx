@@ -61,7 +61,10 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent
+        className="sm:max-w-[450px]"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
@@ -85,7 +88,6 @@ const SettingDialog: React.FC<SettingDialogProps> = ({
                   onChange={(e) => setTempApiKey(e.target.value)}
                   placeholder={t("settings.apiKey.placeholder")}
                   autoComplete="off"
-                  autoFocus={false}
                   className="pr-10"
                 />
                 <Button
