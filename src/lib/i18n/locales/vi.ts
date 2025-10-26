@@ -52,7 +52,7 @@ export const vi = {
     language: {
       label: "Ngôn ngữ",
       vi: "Tiếng Việt",
-      en: "English",
+      en: "Tiếng Anh",
     },
   },
 
