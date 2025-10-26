@@ -143,7 +143,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           table({ children }) {
             return (
               <div className="overflow-x-auto my-4">
-                <table className="min-w-full border-collapse border border-border">
+                <table className="min-w-full border-collapse text-[0.9rem] ">
                   {children}
                 </table>
               </div>
@@ -151,7 +151,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
 
           thead({ children }) {
-            return <thead className="bg-secondary">{children}</thead>;
+            return <thead className="border-b-2 border-border">{children}</thead>;
           },
 
           tbody({ children }) {
@@ -164,7 +164,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
           td({ children }) {
             return (
-              <td className="border border-border px-4 py-2 text-foreground">
+              <td className="px-4 py-1 text-foreground">
                 {children}
               </td>
             );
@@ -172,7 +172,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
           th({ children }) {
             return (
-              <th className="border border-border px-4 py-2 font-semibold text-left text-foreground">
+              <th className="px-4 py-1 font-semibold text-left text-foreground">
                 {children}
               </th>
             );
