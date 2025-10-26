@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { Eye, EyeOff, Key, Palette, Languages, Settings } from "lucide-react";
 import {

@@ -10,7 +10,6 @@ import React, {
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 
-import { useApiKey } from "../hooks/use-api-key";
 import { useScrollToBottom } from "../hooks/use-scroll-to-bottom";
 import { useIndexedDB } from "../hooks/use-indexed-db";
 import { useChat } from "../hooks/use-chat";
@@ -25,16 +24,16 @@ import SettingDialog from "../components/setting/setting-dialog";
 import { ChatInput } from "../components/chat-input/chat-input";
 import { LoadingMessage } from "../components/message/loading-message";
 import { ScrollToBottomButton } from "../components/button/scroll-to-bottom-button";
+import { useSettings } from "../provider/setting-provider";
 
 export default function ChatPage() {
   const [input, setInput] = useState("");
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [isWelcome, setIsWelcome] = useState(false);
   const [inputRef, setInputRef] = useState<HTMLTextAreaElement | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { t } = useTranslation();
-  const { apiKey, isReady: isApiKeyReady, setKey: setApiKey } = useApiKey();
+  const { apiKey, isReady: isApiKeyReady } = useSettings();
   const { selectedModelId, selectedModel, models, handleModelSelect } =
     useModelSelector();
 
@@ -65,7 +64,6 @@ export default function ChatPage() {
     isThinking,
   });
 
-  // Initialize and load messages
   useEffect(() => {
     const initializeApp = async () => {
       if (!isDBInitialized) return;
@@ -84,7 +82,6 @@ export default function ChatPage() {
     initializeApp();
   }, [isDBInitialized, loadChatHistory, setMessages]);
 
-  // Auto scroll to bottom when messages are loaded initially
   useEffect(() => {
     if (isInitialLoad && messages.length > 0) {
       scrollToBottom(0);
@@ -124,7 +121,7 @@ export default function ChatPage() {
     isMessageStreaming,
     sendMessage,
     messages.length,
-    t,
+    scrollToBottom,
   ]);
 
   const handleClearHistory = useCallback(async () => {
@@ -134,7 +131,7 @@ export default function ChatPage() {
       if (success) {
         clearMessages();
         setIsWelcome(true);
-        setIsInitialLoad(true); // Reset initial load state
+        setIsInitialLoad(true);
         setTimeout(() => {
           if (inputRef && isApiKeyReady) {
             inputRef.focus();
@@ -156,12 +153,6 @@ export default function ChatPage() {
       }
     },
     [handleSendMessage]
-  );
-
-  const placeholderText = useMemo(
-    () =>
-      isApiKeyReady ? t("input.placeholder") : t("input.placeholderNoKey"),
-    [isApiKeyReady, t]
   );
 
   const renderedMessages = useMemo(
@@ -191,13 +182,6 @@ export default function ChatPage() {
     >
       {isWelcome && <WelcomeMessage />}
 
-      <SettingDialog
-        apiKey={apiKey}
-        onApiKeyChange={setApiKey}
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-      />
-
       <div className="container mx-auto ">
         <div className="flex flex-col h-full overflow-hidden relative w-full sm:w-[95%] md:w-[800px] mx-auto">
           <div className="flex-1 flex flex-col">{renderedMessages}</div>
@@ -209,11 +193,8 @@ export default function ChatPage() {
         onInputChange={setInput}
         onSendMessage={handleSendMessage}
         onKeyDown={handleKeyDown}
-        onApiKeyConfig={() => setShowApiKeyModal(true)}
         onClearHistory={handleClearHistory}
-        isApiKeyReady={isApiKeyReady}
         isLoading={isLoading || isMessageStreaming}
-        placeholder={placeholderText}
         isWelcome={isWelcome}
         setInputRef={setInputRef}
         isThinking={isThinking}

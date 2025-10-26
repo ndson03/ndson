@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { I18nProvider } from "../provider/i18n-provider";
 import { ThemeProvider } from "../provider/theme-provider";
+import { SettingsProvider } from "../provider/setting-provider";
 
 export const metadata: Metadata = {
   title: "ndson",
@@ -27,7 +28,9 @@ export default function RootLayout({
           disableTransitionOnChange
           storageKey="app_theme"
         >
-          <I18nProvider>{children}</I18nProvider>
+          <I18nProvider>
+            <SettingsProvider>{children}</SettingsProvider>
+          </I18nProvider>
           <Toaster
             position="top-center"
             toastOptions={{

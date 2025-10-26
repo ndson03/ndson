@@ -1,21 +1,20 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowUp, Trash2, Settings } from "lucide-react";
 import { ModelSelector } from "./model-selector";
 import { DeletePopup } from "./delete-chat-history-popup";
 import { useAutoResize } from "@/src/hooks/use-auto-resize";
 import { ThinkingToggle } from "./thinking-toggle";
 import { Model } from "@/src/types";
+import { useTranslation } from "react-i18next";
+import { useSettings } from "@/src/provider/setting-provider";
 
 interface ChatInputProps {
   input: string;
   onInputChange: (value: string) => void;
   onSendMessage: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
-  onApiKeyConfig: () => void;
   onClearHistory: () => void;
-  isApiKeyReady: boolean;
   isLoading: boolean;
-  placeholder: string;
   isWelcome: boolean;
   setInputRef?: (ref: HTMLTextAreaElement | null) => void;
   isThinking: boolean;
@@ -31,11 +30,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onInputChange,
   onSendMessage,
   onKeyDown,
-  onApiKeyConfig,
   onClearHistory,
-  isApiKeyReady,
   isLoading,
-  placeholder,
   isWelcome,
   setInputRef,
   isThinking,
@@ -45,6 +41,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   models,
   onModelSelect,
 }) => {
+  const { t } = useTranslation();
+  const { isReady: isApiKeyReady, openSettings } = useSettings();
+
   const { textareaRef, autoResize } = useAutoResize();
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
@@ -134,7 +133,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         value={input}
         onChange={handleInputChange}
         onKeyDown={onKeyDown}
-        placeholder={placeholder}
+        placeholder={
+          isApiKeyReady ? t("input.placeholder") : t("input.placeholderNoKey")
+        }
         disabled={!isApiKeyReady}
         className={`flex-1 border-none p-1.5 pl-2 pr-2 resize-none w-full transition-all duration-200 ease-in-out focus:outline-none text-sm sm:text-base bg-transparent text-foreground placeholder:text-muted-foreground ${
           !isApiKeyReady ? "disabled" : ""
@@ -145,7 +146,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <div className="flex items-center gap-0.5 sm:gap-1">
           <div
             className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-colors duration-200 ease-in-out text-primary bg-secondary hover:bg-secondary/80 active:bg-secondary/60 apikey-config-button"
-            onClick={onApiKeyConfig}
+            onClick={openSettings}
           >
             <Settings size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
