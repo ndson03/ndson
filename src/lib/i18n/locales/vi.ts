@@ -9,6 +9,7 @@ export const vi = {
   close: "Đóng",
   copy: "Sao chép",
   copied: "Đã sao chép",
+  deepThinking: "Nghĩ sâu",
 
   // Welcome
   welcome: {
@@ -70,7 +71,6 @@ export const vi = {
     clearHistory: "Xóa lịch sử",
     scrollToBottom: "Cuộn xuống cuối",
     apiKeyConfig: "Cấu hình API Key",
-    thinkingMode: "Nghĩ sâu",
     selectModel: "Chọn mô hình",
   },
 

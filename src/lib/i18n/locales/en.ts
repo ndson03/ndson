@@ -9,6 +9,7 @@ export const en = {
   close: "Close",
   copy: "Copy",
   copied: "Copied",
+  deepThinking: "Deep Thinking",
 
   // Welcome
   welcome: {
@@ -69,7 +70,6 @@ export const en = {
     clearHistory: "Clear History",
     scrollToBottom: "Scroll to Bottom",
     apiKeyConfig: "Configure API Key",
-    thinkingMode: "Deep Thinking",
     selectModel: "Select Model",
   },
 

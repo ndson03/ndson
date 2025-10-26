@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus, X, Lightbulb, LightbulbOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ThinkingToggleProps {
   enabled: boolean;
@@ -12,6 +13,7 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
   onToggle,
   selectedModel,
 }) => {
+  const { t } = useTranslation();
   const isProModel = selectedModel.toLowerCase().includes("gemini-2.5-pro");
   const isDisabled = isProModel;
 
@@ -93,7 +95,7 @@ export const ThinkingToggle: React.FC<ThinkingToggleProps> = ({
       aria-pressed={enabled}
     >
       <div className={iconWrapperClasses}>{renderIcon()}</div>
-      <span className={textClasses}>Thinking Mode</span>
+      <span className={textClasses}>{t("deepThinking")}</span>
     </button>
   );
 };
