@@ -67,13 +67,21 @@ export async function POST(request: Request): Promise<Response> {
     // Build request body with optional thinking config
     const requestBody: any = {
       contents: updatedChatHistory,
-    };
-
-    requestBody.generationConfig = {
-      thinkingConfig: {
-        thinkingBudget: isThinking ? -1 : 0,
+      generationConfig: {
+        thinkingConfig: {},
       },
     };
+
+    if (model.includes("gemini-3-flash-preview")) {
+      requestBody.generationConfig.thinkingConfig = {
+        thinkingLevel: isThinking ? "high" : "minimal",
+      };
+    } else {
+      requestBody.generationConfig.thinkingConfig = {
+        includeThoughts: true,
+        thinkingBudget: isThinking ? -1 : 0,
+      };
+    }
 
     const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
 

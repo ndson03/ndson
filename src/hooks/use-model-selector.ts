@@ -14,9 +14,9 @@ const BASE_MODELS = [
     descriptionKey: "models.flash",
   },
   {
-    id: "gemini-2.5-pro",
-    name: "2.5 Pro",
-    descriptionKey: "models.pro",
+    id: "gemini-3-flash-preview",
+    name: "3 Flash",
+    descriptionKey: "  ",
   },
 ];
 
