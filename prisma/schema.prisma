@@ -7,15 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Document {
-  id        String     @id 
-  title     String     @unique
-  content   String?    @default("")
-  parentId  String? 
-  parent    Document?  @relation("DocumentToChildren", fields: [parentId], references: [id], onDelete: Cascade)
-  children  Document[] @relation("DocumentToChildren")
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+model TravelSchedule {
+  id            String   @id @default(cuid())
+  departureDate DateTime @db.Date
+  departureTime String   @db.VarChar(5)
+  travelInfo    String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  @@index([parentId])
+  @@index([departureDate])
 }
