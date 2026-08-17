@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "antd/dist/reset.css";
 import { Toaster } from "react-hot-toast";
 import { I18nProvider } from "../provider/i18n-provider";
 import { ThemeProvider } from "../provider/theme-provider";
@@ -20,7 +21,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className="font-sans font-normal text-base antialiased">
+      <body
+        suppressHydrationWarning
+        className="font-sans font-normal text-base antialiased"
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
