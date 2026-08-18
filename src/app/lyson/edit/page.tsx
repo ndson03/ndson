@@ -1,106 +1,192 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   CalendarPlus,
+  ChevronDown,
+  ChevronUp,
   Clock3,
-  Compass,
   Pencil,
   Plus,
-  Sparkles,
+  Save,
   Trash2,
   Waves,
+  X,
 } from "lucide-react";
 import { ConfigProvider, DatePicker, TimePicker } from "antd";
 import viVN from "antd/locale/vi_VN";
 import dayjs from "dayjs";
+import toast from "react-hot-toast";
 
-type TravelSchedule = {
+type Priority = "normal" | "optional" | "important";
+type Schedule = {
   id: string;
   departureDate: string;
   departureTime: string;
+  endTime: string | null;
+  priority: Priority;
+  travelInfo: string;
+};
+type Draft = {
+  departureDate: string;
+  departureTime: string;
+  endTime: string;
+  priority: Priority;
   travelInfo: string;
 };
 
-const emptyForm = { departureDate: "", departureTime: "", travelInfo: "" };
-
-function groupByDate(schedules: TravelSchedule[]) {
-  return schedules.reduce<Record<string, TravelSchedule[]>>(
-    (groups, schedule) => {
-      const date = schedule.departureDate.slice(0, 10);
-      (groups[date] ??= []).push(schedule);
-      return groups;
-    },
-    {},
-  );
-}
-
-function labelDate(date: string) {
-  const parsedDate = dayjs(date, "YYYY-MM-DD", true);
-  if (!parsedDate.isValid()) return date;
-  return new Intl.DateTimeFormat("vi-VN", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    timeZone: "Asia/Ho_Chi_Minh",
-    hourCycle: "h23",
-  }).format(parsedDate.toDate());
-}
-
-function shortDate(date: string) {
-  const parsedDate = dayjs(date, "YYYY-MM-DD", true);
-  if (!parsedDate.isValid()) return { day: "--", month: "--" };
-  return {
-    day: parsedDate.format("DD"),
-    month: parsedDate.format("'MM"),
-  };
-}
-
-const antdTheme = {
-  token: {
-    colorPrimary: "#0D7377",
-    borderRadius: 10,
-    fontFamily: "'Be Vietnam Pro', sans-serif",
-  },
+const empty: Draft = {
+  departureDate: "",
+  departureTime: "",
+  endTime: "",
+  priority: "normal",
+  travelInfo: "",
 };
 
-// Component con lắng nghe searchParams
-function SearchParamsHandler({
-  setForm,
+const priorityStyles: Record<Priority, string> = {
+  normal: "border-[#0D7377]/20 bg-white text-[#0D7377]",
+  optional: "border-amber-300 bg-amber-50 text-amber-700",
+  important: "border-red-300 bg-red-50 text-red-700",
+};
+
+// Gom nhóm dữ liệu theo ngày và tự động sắp xếp theo giờ bắt đầu
+const group = (items: Schedule[]) =>
+  items.reduce<Record<string, Schedule[]>>((all, item) => {
+    const date = item.departureDate.slice(0, 10);
+    (all[date] ??= []).push(item);
+    all[date].sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+    return all;
+  }, {});
+
+const dateLabel = (date: string) => {
+  const value = dayjs(date);
+  return value.isValid()
+    ? new Intl.DateTimeFormat("vi-VN", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        timeZone: "Asia/Ho_Chi_Minh",
+      }).format(value.toDate())
+    : date;
+};
+
+const shortDate = (date: string) => {
+  const value = dayjs(date);
+  return value.isValid()
+    ? { day: value.format("DD"), month: value.format("MM") }
+    : { day: "--", month: "--" };
+};
+
+function Fields({
+  value,
+  setValue,
 }: {
-  setForm: React.Dispatch<React.SetStateAction<typeof emptyForm>>;
+  value: Draft;
+  setValue: (value: Draft) => void;
 }) {
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const date = searchParams.get("date");
-    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      setForm((current) => ({ ...current, departureDate: date }));
-    }
-  }, [searchParams, setForm]);
-
-  return null;
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <label className="grid gap-1 text-xs font-bold text-[#5B7570]">
+        Ngày
+        <DatePicker
+          value={value.departureDate ? dayjs(value.departureDate) : null}
+          onChange={(date) =>
+            setValue({
+              ...value,
+              departureDate: date?.format("YYYY-MM-DD") ?? "",
+            })
+          }
+          format="DD/MM/YYYY"
+          className="h-10 w-full cursor-pointer"
+        />
+      </label>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="grid gap-1 text-xs font-bold text-[#5B7570]">
+          Bắt đầu
+          <TimePicker
+            value={
+              value.departureTime
+                ? dayjs(`2000-01-01 ${value.departureTime}`)
+                : null
+            }
+            onChange={(time) =>
+              setValue({
+                ...value,
+                departureTime: time?.format("HH:mm") ?? "",
+              })
+            }
+            format="HH:mm"
+            minuteStep={5}
+            className="h-10 w-full cursor-pointer"
+          />
+        </label>
+        <label className="grid gap-1 text-xs font-bold text-[#5B7570]">
+          Kết thúc
+          <TimePicker
+            value={value.endTime ? dayjs(`2000-01-01 ${value.endTime}`) : null}
+            onChange={(time) =>
+              setValue({ ...value, endTime: time?.format("HH:mm") ?? "" })
+            }
+            format="HH:mm"
+            minuteStep={5}
+            className="h-10 w-full cursor-pointer"
+          />
+        </label>
+      </div>
+      <label className="grid gap-1 text-xs font-bold text-[#5B7570]">
+        Mức độ
+        <select
+          value={value.priority}
+          onChange={(event) =>
+            setValue({ ...value, priority: event.target.value as Priority })
+          }
+          className="h-10 cursor-pointer rounded-lg border border-[#E4EFEC] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D7377]/20"
+        >
+          <option value="normal">Bình thường</option>
+          <option value="optional">Tùy chọn</option>
+          <option value="important">Quan trọng</option>
+        </select>
+      </label>
+      <label className="grid gap-1 text-xs font-bold text-[#5B7570] md:col-span-2">
+        Thông tin
+        <textarea
+          required
+          rows={3}
+          value={value.travelInfo}
+          onChange={(event) =>
+            setValue({ ...value, travelInfo: event.target.value })
+          }
+          className="resize-y rounded-lg border border-[#E4EFEC] bg-white px-3 py-2 text-sm text-[#3A4E49] focus:outline-none focus:ring-2 focus:ring-[#0D7377]/20"
+        />
+      </label>
+    </div>
+  );
 }
 
-function EditTravelSchedulesContent() {
-  const [schedules, setSchedules] = useState<TravelSchedule[]>([]);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
+export default function EditLySonPage() {
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [creating, setCreating] = useState<string | null>(null);
+  const [draft, setDraft] = useState<Draft>(empty);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
 
-  const groupedSchedules = useMemo(() => groupByDate(schedules), [schedules]);
-  const sortedDates = useMemo(
-    () => Object.keys(groupedSchedules).sort(),
-    [groupedSchedules],
-  );
+  const groups = useMemo(() => group(schedules), [schedules]);
+  const dates = useMemo(() => Object.keys(groups).sort(), [groups]);
 
-  const loadSchedules = async () => {
+  const toggleDate = (date: string) =>
+    setCollapsedDates((current) => {
+      const next = new Set(current);
+      next.has(date) ? next.delete(date) : next.add(date);
+      return next;
+    });
+
+  const load = async () => {
     setLoading(true);
     try {
       const response = await fetch("/api/travel-schedules", {
@@ -110,7 +196,7 @@ function EditTravelSchedulesContent() {
       if (!response.ok) throw new Error(data.error);
       setSchedules(data);
     } catch (error) {
-      setMessage(
+      toast.error(
         error instanceof Error ? error.message : "Không thể tải lịch trình.",
       );
     } finally {
@@ -119,351 +205,449 @@ function EditTravelSchedulesContent() {
   };
 
   useEffect(() => {
-    void loadSchedules();
+    void load();
   }, []);
 
-  const resetForm = () => {
-    setForm(emptyForm);
-    setEditingId(null);
+  const close = () => {
+    setEditing(null);
+    setCreating(null);
+    setDraft(empty);
   };
 
-  const submitForm = async (event: FormEvent<HTMLFormElement>) => {
+  // Hàm kiểm tra trùng thời gian trong cùng một ngày
+  const checkOverlap = (id?: string) => {
+    if (!draft.departureDate || !draft.departureTime) return false;
+
+    const startMinutes =
+      parseInt(draft.departureTime.split(":")[0]) * 60 +
+      parseInt(draft.departureTime.split(":")[1]);
+    const endMinutes = draft.endTime
+      ? parseInt(draft.endTime.split(":")[0]) * 60 +
+        parseInt(draft.endTime.split(":")[1])
+      : startMinutes + 30; // Mặc định thời lượng 30 phút nếu không điền giờ kết thúc
+
+    if (draft.endTime && endMinutes <= startMinutes) {
+      toast.error("Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+      return true;
+    }
+
+    const sameDayItems = schedules.filter(
+      (item) => item.departureDate === draft.departureDate && item.id !== id,
+    );
+
+    for (const item of sameDayItems) {
+      const existingStart =
+        parseInt(item.departureTime.split(":")[0]) * 60 +
+        parseInt(item.departureTime.split(":")[1]);
+      const existingEnd = item.endTime
+        ? parseInt(item.endTime.split(":")[0]) * 60 +
+          parseInt(item.endTime.split(":")[1])
+        : existingStart + 30;
+
+      if (startMinutes < existingEnd && endMinutes > existingStart) {
+        toast.error(
+          `Khung giờ bị trùng với lịch: "${item.travelInfo}" (${item.departureTime})`,
+        );
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const submit = async (event: FormEvent<HTMLFormElement>, id?: string) => {
     event.preventDefault();
-    setSubmitting(true);
-    setMessage(null);
-    const isEditing = Boolean(editingId);
+
+    if (!draft.departureDate || !draft.departureTime) {
+      toast.error("Vui lòng chọn ngày và giờ bắt đầu.");
+      return;
+    }
+
+    if (!draft.travelInfo.trim()) {
+      toast.error("Vui lòng nhập nội dung hoạt động.");
+      return;
+    }
+
+    if (checkOverlap(id)) return;
+
+    setSaving(true);
     try {
+      const payload = {
+        ...draft,
+        travelInfo: draft.travelInfo.trim(),
+        endTime: draft.endTime || null,
+      };
+
       const response = await fetch(
-        isEditing
-          ? `/api/travel-schedules/${editingId}`
-          : "/api/travel-schedules",
+        id ? `/api/travel-schedules/${id}` : "/api/travel-schedules",
         {
-          method: isEditing ? "PUT" : "POST",
+          method: id ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         },
       );
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
-      await loadSchedules();
-      resetForm();
-      setMessage(
-        isEditing ? "Đã cập nhật lịch trình." : "Đã thêm lịch trình mới.",
-      );
+
+      if (id) {
+        setSchedules((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, ...data } : item)),
+        );
+      } else {
+        setSchedules((prev) => [...prev, data]);
+      }
+
+      close();
+      toast.success(id ? "Đã cập nhật hoạt động." : "Đã thêm hoạt động.");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Không thể lưu lịch trình.",
+      toast.error(
+        error instanceof Error ? error.message : "Không thể lưu hoạt động.",
       );
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   };
 
-  const selectSchedule = (schedule: TravelSchedule) => {
-    setEditingId(schedule.id);
-    setForm({
-      departureDate: schedule.departureDate.slice(0, 10),
-      departureTime: schedule.departureTime,
-      travelInfo: schedule.travelInfo,
-    });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const addForDate = (date: string) => {
-    setEditingId(null);
-    setForm({ ...emptyForm, departureDate: date });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const deleteSchedule = async (id: string) => {
-    if (!window.confirm("Bạn có chắc muốn xoá lịch trình này?")) return;
+  const remove = async (id: string) => {
+    if (!window.confirm("Bạn có chắc muốn xoá hoạt động này?")) return;
+    setDeletingId(id);
     try {
       const response = await fetch(`/api/travel-schedules/${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error((await response.json()).error);
-      if (editingId === id) resetForm();
-      await loadSchedules();
-      setMessage("Đã xoá lịch trình.");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error);
+      }
+
+      setSchedules((prev) => prev.filter((item) => item.id !== id));
+      toast.success("Đã xóa hoạt động.");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Không thể xoá lịch trình.",
+      toast.error(
+        error instanceof Error ? error.message : "Không thể xóa hoạt động.",
       );
+    } finally {
+      setDeletingId(null);
     }
   };
 
+  const edit = (item: Schedule) => {
+    setCreating(null);
+    setEditing(item.id);
+    setDraft({
+      departureDate: item.departureDate.slice(0, 10),
+      departureTime: item.departureTime,
+      endTime: item.endTime ?? "",
+      priority: item.priority ?? "normal",
+      travelInfo: item.travelInfo,
+    });
+  };
+
+  const create = (date: string) => {
+    setEditing(null);
+    setCreating(date);
+    setDraft({
+      ...empty,
+      departureDate: date === "new" ? dayjs().format("YYYY-MM-DD") : date,
+    });
+  };
+
   return (
-    <ConfigProvider locale={viVN} theme={antdTheme}>
-      <Suspense fallback={null}>
-        <SearchParamsHandler setForm={setForm} />
-      </Suspense>
+    <ConfigProvider
+      locale={viVN}
+      theme={{
+        token: {
+          colorPrimary: "#0D7377",
+          borderRadius: 10,
+          fontFamily: "'Be Vietnam Pro', sans-serif",
+        },
+      }}
+    >
+      <main className="lyson-editor font-body relative min-h-screen overflow-x-hidden bg-[#F6FAF9] text-[#16302B]">
+        <style jsx global>{`
+          @import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap");
+          .font-body {
+            font-family: "Be Vietnam Pro", sans-serif;
+          }
+          .lyson-editor button:not(:disabled),
+          .lyson-editor a {
+            transition:
+              background-color 0.16s ease,
+              filter 0.16s ease,
+              border-color 0.16s ease;
+          }
+          .lyson-editor button:not(:disabled):hover,
+          .lyson-editor a:hover {
+            filter: brightness(0.96);
+          }
+          .lyson-editor button:disabled {
+            cursor: not-allowed;
+          }
+        `}</style>
 
-      <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap");
-        .font-display {
-          font-family: "Be Vietnam Pro", sans-serif;
-        }
-        .font-body {
-          font-family: "Be Vietnam Pro", sans-serif;
-        }
-      `}</style>
-
-      <main className="font-body relative min-h-screen overflow-x-hidden bg-[#F6FAF9] text-[#16302B]">
+        {/* Ambient background glows */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-32 -right-24 h-96 w-96 rounded-full bg-[#F4A340]/15 blur-3xl" />
-          <div className="absolute top-1/3 -left-32 h-96 w-96 rounded-full bg-[#0D7377]/10 blur-3xl" />
+          <div className="absolute -right-24 -top-32 h-96 w-96 rounded-full bg-[#F4A340]/15 blur-3xl" />
+          <div className="absolute -left-32 top-1/3 h-96 w-96 rounded-full bg-[#0D7377]/10 blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-          <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <header className="mb-10 flex items-center justify-between">
             <div>
-              <p className="mb-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#0D7377]">
+              <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-[#0D7377]">
                 <Waves className="h-3.5 w-3.5" />
                 Hành trình Lý Sơn
               </p>
-              <h1 className="font-display text-3xl font-extrabold tracking-tight text-[#16302B] sm:text-4xl">
-                Quản lý hành trình
-              </h1>
-              <p className="mt-2 max-w-md text-[15px] text-[#5B7570]">
-                Sắp xếp hoạt động theo ngày, theo giờ Việt Nam (24h).
-              </p>
+              <h1 className="mt-2 text-2xl font-bold">Quản lý lịch trình</h1>
             </div>
             <Link
               href="/lyson"
-              className="inline-flex items-center gap-2 self-start rounded-full border border-[#0D7377]/20 bg-white px-4 py-2.5 text-sm font-semibold text-[#0D7377] shadow-sm transition hover:border-[#0D7377]/40 hover:bg-[#0D7377]/5 sm:self-auto"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#0D7377]/20 bg-white px-2.5 py-2.5 text-sm font-semibold text-[#0D7377] shadow-sm hover:bg-[#0D7377]/5"
             >
               <ArrowLeft className="h-4 w-4" />
-              Xem lịch trình
             </Link>
           </header>
 
-          <section className="mb-10 rounded-[28px] border border-[#E4EFEC] bg-white p-5 shadow-[0_8px_30px_-12px_rgba(13,115,119,0.15)] sm:p-7">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display flex items-center gap-2.5 text-lg font-bold text-[#16302B]">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0D7377]/10 text-[#0D7377]">
-                  {editingId ? (
-                    <Pencil className="h-4.5 w-4.5" />
-                  ) : (
-                    <Sparkles className="h-4.5 w-4.5" />
-                  )}
-                </span>
-                {editingId ? "Cập nhật hoạt động" : "Thêm hoạt động mới"}
-              </h2>
-              {form.departureDate && !editingId && (
-                <span className="rounded-full bg-[#F4A340]/15 px-3.5 py-1.5 text-sm font-semibold text-[#B4680E]">
-                  {labelDate(form.departureDate)}
-                </span>
-              )}
+          {loading ? (
+            <div className="space-y-3">
+              {[0, 1, 2].map((item) => (
+                <div
+                  key={item}
+                  className="h-20 animate-pulse rounded-2xl bg-white/70"
+                />
+              ))}
             </div>
+          ) : (
+            <div className="space-y-6">
+              {dates.length === 0 ? (
+                <div className="rounded-[28px] border border-dashed border-[#0D7377]/25 bg-white/60 px-6 py-14 text-center">
+                  <Waves className="mx-auto mb-3 h-8 w-8 text-[#0D7377]/40" />
+                  <p className="font-semibold">Chưa có lịch trình nào</p>
+                </div>
+              ) : (
+                <div className="relative">
+                  {/* Timeline vertical connector */}
+                  <div className="absolute bottom-3 left-[27px] top-3 hidden w-px bg-gradient-to-b from-[#0D7377]/30 via-[#0D7377]/15 to-transparent sm:block" />
 
-            <form onSubmit={submitForm} className="grid gap-5 md:grid-cols-2">
-              <label className="grid gap-2 text-sm font-semibold text-[#16302B]">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#5B7570]">
-                  Ngày đi
-                </span>
-                <DatePicker
-                  required
-                  allowClear={false}
-                  value={form.departureDate ? dayjs(form.departureDate) : null}
-                  onChange={(date) =>
-                    setForm({
-                      ...form,
-                      departureDate: date ? date.format("YYYY-MM-DD") : "",
-                    })
-                  }
-                  format="DD/MM/YYYY"
-                  placeholder="Chọn ngày đi"
-                  className="h-11 w-full rounded-xl"
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-semibold text-[#16302B]">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#5B7570]">
-                  Giờ đi
-                </span>
-                <TimePicker
-                  required
-                  allowClear={false}
-                  value={
-                    form.departureTime
-                      ? dayjs(`2000-01-01 ${form.departureTime}`)
-                      : null
-                  }
-                  onChange={(time) =>
-                    setForm({
-                      ...form,
-                      departureTime: time ? time.format("HH:mm") : "",
-                    })
-                  }
-                  format="HH:mm"
-                  minuteStep={5}
-                  placeholder="Chọn giờ đi"
-                  className="h-11 w-full rounded-xl"
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-semibold text-[#16302B] md:col-span-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#5B7570]">
-                  Thông tin đi
-                </span>
-                <textarea
-                  required
-                  rows={4}
-                  value={form.travelInfo}
-                  onChange={(e) =>
-                    setForm({ ...form, travelInfo: e.target.value })
-                  }
-                  placeholder="Ví dụ: Bay đến Đà Nẵng, nhận phòng khách sạn..."
-                  className="resize-y rounded-xl border border-[#E4EFEC] bg-[#FAFDFC] px-3.5 py-3 text-sm font-normal text-[#16302B] outline-none transition focus:border-[#0D7377] focus:ring-4 focus:ring-[#0D7377]/10"
-                />
-              </label>
-              <div className="flex flex-wrap items-center gap-3 md:col-span-2">
+                  <div className="space-y-6">
+                    {dates.map((date) => {
+                      const { day, month } = shortDate(date);
+                      const isCollapsed = collapsedDates.has(date);
+
+                      return (
+                        <article key={date} className="relative sm:pl-20">
+                          {/* Date badge */}
+                          <div className="absolute left-0 top-0 hidden h-14 w-14 flex-col items-center justify-center rounded-2xl border border-[#0D7377]/15 bg-white text-[#0D7377] shadow-sm sm:flex">
+                            <span className="text-base font-extrabold leading-none">
+                              {day}
+                            </span>
+                            <span className="mt-1 text-[10px] font-bold uppercase leading-none text-[#5B7570]">
+                              T{month}
+                            </span>
+                          </div>
+
+                          <div className="rounded-[24px] border border-[#E4EFEC] bg-white p-4 shadow-[0_4px_20px_-10px_rgba(13,115,119,0.12)] sm:p-5">
+                            <div className="flex items-center justify-between gap-3">
+                              <button
+                                type="button"
+                                onClick={() => toggleDate(date)}
+                                aria-expanded={!isCollapsed}
+                                className="flex flex-1 cursor-pointer items-center justify-between text-left"
+                              >
+                                <h2 className="text-base font-bold capitalize">
+                                  {dateLabel(date)}
+                                </h2>
+                                <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#F6FAF9] text-[#0D7377]">
+                                  {isCollapsed ? (
+                                    <ChevronDown className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronUp className="h-4 w-4" />
+                                  )}
+                                </span>
+                              </button>
+
+                              <button
+                                onClick={() => create(date)}
+                                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-[#0D7377]/10 px-3 py-2 text-sm font-semibold text-[#0D7377] hover:bg-[#0D7377]/20"
+                                type="button"
+                              >
+                                <CalendarPlus className="h-4 w-4" />
+                                <span className="hidden sm:inline">
+                                  Thêm lịch
+                                </span>
+                              </button>
+                            </div>
+
+                            {!isCollapsed && (
+                              <div className="relative mt-4 pl-1 sm:pl-2">
+                                <div className="pointer-events-none absolute bottom-6 left-[21px] top-6 z-0 w-[2px] bg-gradient-to-b from-[#0D7377]/20 via-[#0D7377]/10 to-transparent sm:left-[25px]" />
+
+                                <ul className="relative z-10 space-y-3">
+                                  {groups[date].map((item) =>
+                                    editing === item.id ? (
+                                      <li
+                                        key={item.id}
+                                        className="relative z-10"
+                                      >
+                                        <form
+                                          onSubmit={(event) =>
+                                            submit(event, item.id)
+                                          }
+                                          className="rounded-2xl border-2 border-[#0D7377]/25 bg-white p-4 shadow-sm"
+                                        >
+                                          <Fields
+                                            value={draft}
+                                            setValue={setDraft}
+                                          />
+                                          <div className="mt-3 flex gap-2">
+                                            <button
+                                              disabled={saving}
+                                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#0D7377] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0B6164] disabled:cursor-not-allowed disabled:opacity-50"
+                                              type="submit"
+                                            >
+                                              <Save className="h-4 w-4" />
+                                              {saving ? "Đang lưu..." : "Lưu"}
+                                            </button>
+                                            <button
+                                              onClick={close}
+                                              type="button"
+                                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-[#5B7570] hover:bg-black/5"
+                                            >
+                                              <X className="h-4 w-4" />
+                                              Huỷ
+                                            </button>
+                                          </div>
+                                        </form>
+                                      </li>
+                                    ) : (
+                                      <li
+                                        key={item.id}
+                                        className={`relative z-10 flex items-start justify-between gap-3 rounded-2xl bg-[#F6FAF9] p-3 transition-opacity sm:gap-4 sm:p-3.5 ${
+                                          deletingId === item.id
+                                            ? "opacity-40"
+                                            : ""
+                                        }`}
+                                      >
+                                        <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
+                                          <div
+                                            className={`relative z-10 inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-xl border px-3 text-[12px] font-bold shadow-sm ${
+                                              priorityStyles[
+                                                item.priority ?? "normal"
+                                              ]
+                                            }`}
+                                          >
+                                            <Clock3 className="h-3.5 w-3.5 shrink-0" />
+                                            <span className="tabular-nums leading-none">
+                                              {item.departureTime}
+                                              {item.endTime
+                                                ? ` – ${item.endTime}`
+                                                : ""}
+                                            </span>
+                                          </div>
+                                          <p className="min-w-0 flex-1 pt-[3px] text-[14px] font-medium leading-relaxed text-[#3A4E49]">
+                                            {item.travelInfo}
+                                          </p>
+                                        </div>
+
+                                        <div className="flex shrink-0 items-center">
+                                          <button
+                                            onClick={() => edit(item)}
+                                            disabled={deletingId === item.id}
+                                            className="cursor-pointer rounded-lg p-1.5 text-[#0D7377] hover:bg-[#0D7377]/10 disabled:opacity-50"
+                                            type="button"
+                                          >
+                                            <Pencil className="h-4 w-4" />
+                                          </button>
+                                          <button
+                                            onClick={() => void remove(item.id)}
+                                            disabled={deletingId === item.id}
+                                            className="cursor-pointer rounded-lg p-1.5 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                                            type="button"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </button>
+                                        </div>
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+
+                                {creating === date && (
+                                  <form
+                                    onSubmit={(event) => submit(event)}
+                                    className="relative z-10 mt-3 rounded-2xl border-2 border-dashed border-[#0D7377]/30 bg-white p-4"
+                                  >
+                                    <Fields value={draft} setValue={setDraft} />
+                                    <div className="mt-3 flex gap-2">
+                                      <button
+                                        disabled={saving}
+                                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#0D7377] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0B6164] disabled:cursor-not-allowed disabled:opacity-50"
+                                        type="submit"
+                                      >
+                                        <Plus className="h-4 w-4" />
+                                        {saving ? "Đang thêm..." : "Thêm"}
+                                      </button>
+                                      <button
+                                        onClick={close}
+                                        type="button"
+                                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-[#5B7570] hover:bg-black/5"
+                                      >
+                                        <X className="h-4 w-4" />
+                                        Huỷ
+                                      </button>
+                                    </div>
+                                  </form>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2">
                 <button
-                  disabled={submitting}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#0D7377] px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-[#0D7377]/25 transition hover:bg-[#0B5F62] disabled:cursor-not-allowed disabled:opacity-60"
-                  type="submit"
+                  onClick={() => create("new")}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-[#0D7377]/40 bg-white px-4 py-3 text-sm font-bold text-[#0D7377] shadow-sm hover:border-[#0D7377] hover:bg-[#0D7377]/5"
+                  type="button"
                 >
                   <Plus className="h-4 w-4" />
-                  {submitting
-                    ? "Đang lưu..."
-                    : editingId
-                      ? "Lưu thay đổi"
-                      : "Thêm vào lịch"}
+                  Thêm lịch cho ngày mới
                 </button>
-                {editingId && (
-                  <button
-                    onClick={resetForm}
-                    className="rounded-full px-5 py-2.5 text-sm font-semibold text-[#5B7570] transition hover:bg-[#F6FAF9]"
-                    type="button"
-                  >
-                    Huỷ
-                  </button>
-                )}
-                {message && (
-                  <span
-                    className="text-sm font-medium text-[#0D7377]"
-                    role="status"
-                  >
-                    {message}
-                  </span>
-                )}
               </div>
-            </form>
-          </section>
 
-          <section>
-            <div className="mb-5 flex items-center gap-2.5">
-              <Compass className="h-5 w-5 text-[#0D7377]" />
-              <h2 className="font-display text-xl font-bold text-[#16302B]">
-                Hành trình theo ngày
-              </h2>
+              {creating === "new" && (
+                <form
+                  onSubmit={(event) => submit(event)}
+                  className="rounded-[24px] border-2 border-dashed border-[#0D7377]/30 bg-white p-5 shadow-sm"
+                >
+                  <Fields value={draft} setValue={setDraft} />
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      disabled={saving}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#0D7377] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0B6164] disabled:cursor-not-allowed disabled:opacity-50"
+                      type="submit"
+                    >
+                      <Plus className="h-4 w-4" />
+                      {saving ? "Đang thêm..." : "Thêm hoạt động"}
+                    </button>
+                    <button
+                      onClick={close}
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-[#5B7570] hover:bg-black/5"
+                    >
+                      <X className="h-4 w-4" />
+                      Huỷ
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
-
-            {loading ? (
-              <div className="space-y-3">
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="h-20 animate-pulse rounded-2xl bg-white/70"
-                  />
-                ))}
-              </div>
-            ) : sortedDates.length === 0 ? (
-              <div className="rounded-[28px] border border-dashed border-[#0D7377]/25 bg-white/60 px-6 py-14 text-center">
-                <Waves className="mx-auto mb-3 h-8 w-8 text-[#0D7377]/40" />
-                <p className="font-semibold text-[#16302B]">
-                  Chưa có lịch trình nào
-                </p>
-                <p className="mt-1 text-sm text-[#5B7570]">
-                  Thêm hoạt động đầu tiên ở biểu mẫu phía trên.
-                </p>
-              </div>
-            ) : (
-              <div className="relative">
-                <div className="absolute left-[27px] top-3 bottom-3 hidden w-px bg-gradient-to-b from-[#0D7377]/30 via-[#0D7377]/15 to-transparent sm:block" />
-                <div className="space-y-8">
-                  {sortedDates.map((date) => {
-                    const items = groupedSchedules[date];
-                    const { day, month } = shortDate(date);
-                    return (
-                      <div key={date} className="relative sm:pl-[68px]">
-                        <div className="absolute left-0 top-0 hidden h-14 w-14 flex-col items-center justify-center rounded-2xl border border-[#0D7377]/15 bg-white text-[#0D7377] shadow-sm sm:flex">
-                          <span className="text-base font-extrabold leading-none">
-                            {day}
-                          </span>
-                          <span className="text-[10px] font-bold uppercase leading-none text-[#5B7570]">
-                            {month}
-                          </span>
-                        </div>
-
-                        <div className="rounded-[24px] border border-[#E4EFEC] bg-white p-4 shadow-[0_4px_20px_-10px_rgba(13,115,119,0.12)] sm:p-5">
-                          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                            <h3 className="font-display text-[15px] font-bold capitalize text-[#16302B]">
-                              {labelDate(date)}
-                            </h3>
-                            <button
-                              onClick={() => addForDate(date)}
-                              className="inline-flex items-center gap-1.5 rounded-full bg-[#F4A340]/15 px-3 py-1.5 text-xs font-bold text-[#B4680E] transition hover:bg-[#F4A340]/25"
-                              type="button"
-                            >
-                              <CalendarPlus className="h-3.5 w-3.5" />
-                              Thêm lịch trong ngày
-                            </button>
-                          </div>
-                          <ul className="space-y-2">
-                            {items.map((schedule) => (
-                              <li
-                                key={schedule.id}
-                                className="group flex flex-col gap-3 rounded-2xl bg-[#F6FAF9] p-3.5 transition hover:bg-[#EFF6F4] sm:flex-row sm:items-center sm:justify-between"
-                              >
-                                <div className="min-w-0">
-                                  <p className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-[#0D7377] shadow-sm">
-                                    <Clock3 className="h-3.5 w-3.5" />
-                                    {schedule.departureTime}
-                                  </p>
-                                  <p className="mt-2 whitespace-pre-wrap text-[14px] leading-relaxed text-[#3A4E49]">
-                                    {schedule.travelInfo}
-                                  </p>
-                                </div>
-                                <div className="flex shrink-0 gap-1 opacity-90 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
-                                  <button
-                                    onClick={() => selectSchedule(schedule)}
-                                    className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-[#0D7377] hover:bg-white"
-                                    type="button"
-                                  >
-                                    <Pencil className="h-4 w-4" />
-                                    Sửa
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      void deleteSchedule(schedule.id)
-                                    }
-                                    className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-[#C4472A] hover:bg-white"
-                                    type="button"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                    Xoá
-                                  </button>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </section>
+          )}
         </div>
       </main>
     </ConfigProvider>
-  );
-}
-
-export default function EditTravelSchedulesPage() {
-  return (
-    <Suspense fallback={null}>
-      <EditTravelSchedulesContent />
-    </Suspense>
   );
 }
